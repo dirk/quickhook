@@ -4,3 +4,4 @@ import:
   version: ^1.18.0
 - package: github.com/libgit2/git2go
   version: v24
+- package: github.com/jeffail/tunny

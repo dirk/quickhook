@@ -3,7 +3,10 @@ package hooks
 import (
 	"fmt"
 	"os/exec"
+	"runtime"
 	"strings"
+
+	"github.com/jeffail/tunny"
 
 	"github.com/dirk/quickhook/context"
 )
@@ -21,19 +24,15 @@ func PreCommit(c *context.Context) error {
 	// 	fmt.Printf("file: %v\n", file)
 	// }
 
-	for _, executable := range executables {
-		// fmt.Printf("executable: %v\n", executable)
-		result, err := runExecutable(c, executable, files)
+	results := runExecutablesInParallel(executables, files)
 
-		if err != nil {
-			fmt.Printf("Error running hook executable %v: %v\n", executable, err)
-		} else if result.err != nil {
+	for _, result := range results {
+		if result.err != nil {
 			output := strings.TrimSpace(result.combinedOutput)
 
 			fmt.Printf("Error: %v\n", result.err)
 			fmt.Printf("Output: %v\n", output)
 		}
-
 	}
 
 	return nil
@@ -44,7 +43,44 @@ type Result struct {
 	combinedOutput string
 }
 
-func runExecutable(c *context.Context, path string, files []string) (*Result, error) {
+// Uses a pool sized to the number of CPUs to run all the executables. It's
+// sized to the CPU count so that we fully utilized the hardwire but don't
+// context switch in the OS too much.
+func runExecutablesInParallel(executables []string, files[]string) ([]*Result) {
+	bufferSize := len(executables)
+
+	in := make(chan string, bufferSize)
+	out := make(chan *Result, bufferSize)
+
+	pool, err := tunny.CreatePoolGeneric(runtime.NumCPU()).Open()
+	if err != nil { panic(err) }
+
+	defer pool.Close()
+
+	for _, executable := range executables {
+		in <- executable
+
+		go func() {
+			_, err := pool.SendWork(func() {
+				executable := <- in
+
+				out <- runExecutable(executable, files)
+			})
+
+			// Something real bad happened
+			if err != nil { panic(err) }
+		}()
+	}
+
+	var results []*Result
+	for i := 0; i < bufferSize; i++ {
+		results = append(results, <- out)
+	}
+
+	return results
+}
+
+func runExecutable(path string, files []string) *Result {
 	cmd := exec.Command(path)
 	cmd.Stdin = strings.NewReader(strings.Join(files, "\n"))
 
@@ -53,5 +89,5 @@ func runExecutable(c *context.Context, path string, files []string) (*Result, er
 	return &Result{
 		err: exitErr,
 		combinedOutput: string(combinedOutputBytes),
-	}, nil
+	}
 }

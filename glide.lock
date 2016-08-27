@@ -1,6 +1,8 @@
-hash: f1d577fc8d76d63c1571404007be4fb99e39e269e3fe2c199ee36d02d96b8e40
-updated: 2016-08-27T11:49:52.955801083-07:00
+hash: 05878ebfbde7e82b93d6087d93c12f4c71058987a2b8483ab38cc879052ce464
+updated: 2016-08-27T14:24:05.226193979-07:00
 imports:
+- name: github.com/jeffail/tunny
+  version: 18dedac4b5873be2596b7a49ff0159e6691f9836
 - name: github.com/libgit2/git2go
   version: 8eaae73f85dd3df78df80d2dac066eb0866444ae
 - name: github.com/urfave/cli
