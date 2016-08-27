@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -13,9 +14,17 @@ import (
 
 const HOOK = "pre-commit"
 
+// OS exit code to use when hooks didn't pass
+const FAILED_EXIT_CODE = 1
+
 func PreCommit(c *context.Context) error {
-	files, err := c.FilesToBeCommited()
+	files, err := c.FilesToBeCommitted()
 	if err != nil { return err }
+
+	if len(files) == 0 {
+		fmt.Println("No files to be committed!")
+		return nil
+	}
 
 	executables, err := c.ExecutablesForHook(HOOK)
 	if err != nil { return err }
@@ -25,20 +34,30 @@ func PreCommit(c *context.Context) error {
 	// }
 
 	results := runExecutablesInParallel(executables, files)
+	hasErrors := false
 
 	for _, result := range results {
 		if result.err != nil {
-			output := strings.TrimSpace(result.combinedOutput)
+			hasErrors = true
 
-			fmt.Printf("Error: %v\n", result.err)
-			fmt.Printf("Output: %v\n", output)
+			fmt.Printf("%v:\n", result.executablePath)
+
+			output := strings.TrimSpace(result.combinedOutput)
+			for _, line := range strings.Split(output, "\n") {
+				fmt.Printf("  %v\n", line)
+			}
 		}
+	}
+
+	if hasErrors {
+		os.Exit(FAILED_EXIT_CODE)
 	}
 
 	return nil
 }
 
 type Result struct {
+	executablePath string
 	err error
 	combinedOutput string
 }
@@ -87,6 +106,7 @@ func runExecutable(path string, files []string) *Result {
 	combinedOutputBytes, exitErr := cmd.CombinedOutput()
 
 	return &Result{
+		executablePath: path,
 		err: exitErr,
 		combinedOutput: string(combinedOutputBytes),
 	}

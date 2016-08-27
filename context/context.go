@@ -27,7 +27,7 @@ func NewContext(path string) (*Context, error) {
 	return context, nil
 }
 
-func (c *Context) FilesToBeCommited() ([]string, error) {
+func (c *Context) FilesToBeCommitted() ([]string, error) {
 	statusList, err := c.repo.StatusList(&git.StatusOptions{Show: git.StatusShowIndexOnly})
 	if err != nil { return nil, err }
 
