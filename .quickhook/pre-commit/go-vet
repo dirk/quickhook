@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Only vet files ending with ".go"
+files=$(cat - | grep "\.go$")
+
+echo $files | xargs go tool vet
