@@ -1,6 +1,8 @@
-hash: 2658b56ef2b205225e81ea29e2a9afea678b0170817fe89232081ffc9882eb46
-updated: 2016-08-27T11:18:02.063524226-07:00
+hash: f1d577fc8d76d63c1571404007be4fb99e39e269e3fe2c199ee36d02d96b8e40
+updated: 2016-08-27T11:49:52.955801083-07:00
 imports:
+- name: github.com/libgit2/git2go
+  version: 8eaae73f85dd3df78df80d2dac066eb0866444ae
 - name: github.com/urfave/cli
   version: 1efa31f08b9333f1bd4882d61f9d668a70cd902e
 testImports: []
