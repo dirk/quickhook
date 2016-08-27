@@ -28,7 +28,9 @@ func main() {
 				cli.Command{
 					Name: "pre-commit",
 					Action: func(c *cli.Context) error {
-						return hooks.PreCommit(context)
+						err := hooks.PreCommit(context)
+						if err != nil { panic(err) }
+						return nil
 					},
 				},
 			},

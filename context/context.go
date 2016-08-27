@@ -1,10 +1,15 @@
 package context
 
 import (
+	"fmt"
+	"io/ioutil"
+	"path"
+
 	"github.com/libgit2/git2go"
 )
 
 type Context struct {
+	path string
 	repo *git.Repository
 }
 
@@ -15,6 +20,7 @@ func NewContext(path string) (*Context, error) {
 	}
 
 	context := &Context{
+		path: path,
 		repo: repo,
 	}
 
@@ -37,4 +43,27 @@ func (c *Context) FilesToBeCommited() ([]string, error) {
 	}
 
 	return files, nil
+}
+
+func (c *Context) ExecutablesForHook(hook string) ([]string, error) {
+	shortPath    := path.Join(".quickhook", hook)
+	absolutePath := path.Join(c.path, shortPath)
+
+	allFiles, err := ioutil.ReadDir(absolutePath)
+	if err != nil { return nil, err }
+
+	var executables []string
+	for _, fileInfo := range allFiles {
+		if fileInfo.IsDir() { continue }
+
+		name := fileInfo.Name()
+
+		if (fileInfo.Mode() & 0111) > 0 {
+			executables = append(executables, path.Join(shortPath, name))
+		} else {
+			fmt.Printf("Warning: Non-executable file found in %v: %v\n", shortPath, name)
+		}
+	}
+
+	return executables, nil
 }
