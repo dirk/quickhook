@@ -29,15 +29,11 @@ func PreCommit(c *context.Context) error {
 	executables, err := c.ExecutablesForHook(HOOK)
 	if err != nil { return err }
 
-	// for _, file := range files {
-	// 	fmt.Printf("file: %v\n", file)
-	// }
-
 	results := runExecutablesInParallel(executables, files)
 	hasErrors := false
 
 	for _, result := range results {
-		if result.err != nil {
+		if result.commandError != nil {
 			hasErrors = true
 
 			fmt.Printf("%v:\n", result.executablePath)
@@ -58,7 +54,7 @@ func PreCommit(c *context.Context) error {
 
 type Result struct {
 	executablePath string
-	err error
+	commandError error
 	combinedOutput string
 }
 
@@ -103,11 +99,11 @@ func runExecutable(path string, files []string) *Result {
 	cmd := exec.Command(path)
 	cmd.Stdin = strings.NewReader(strings.Join(files, "\n"))
 
-	combinedOutputBytes, exitErr := cmd.CombinedOutput()
+	combinedOutputBytes, exitError := cmd.CombinedOutput()
 
 	return &Result{
 		executablePath: path,
-		err: exitErr,
+		commandError: exitError,
 		combinedOutput: string(combinedOutputBytes),
 	}
 }
