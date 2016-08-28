@@ -28,19 +28,26 @@ func (c *Context) FilesToBeCommitted() ([]string, error) {
 	if err != nil { return nil, err }
 
 	output := string(outputBytes)
-	lines := strings.Split(strings.TrimSpace(output), "\n")
+	lines := strings.Split(output, "\n")
+
+	var files []string
 
 	// Verify that all the lines are *actually* files
 	for _, line := range lines {
-		stat, err := os.Stat(line)
+		file := strings.TrimSpace(line)
+		if len(file) == 0 { continue }
+
+		stat, err := os.Stat(file)
 		if err != nil { return nil, err }
 
 		if stat.IsDir() {
-			return nil, fmt.Errorf("Unexpected directory in list of staged files: %v", line)
+			return nil, fmt.Errorf("Unexpected directory in list of staged files: %v", file)
 		}
+
+		files = append(files, file)
 	}
 
-	return lines, nil
+	return files, nil
 }
 
 func (c *Context) ExecutablesForHook(hook string) ([]string, error) {
