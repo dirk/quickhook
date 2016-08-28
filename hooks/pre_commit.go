@@ -14,8 +14,8 @@ import (
 
 const HOOK = "pre-commit"
 
-// OS exit code to use when hooks didn't pass
-const FAILED_EXIT_CODE = 1
+const FAILED_EXIT_CODE         = 65 // EX_DATAERR - hooks didn't pass
+const NOTHING_STAGED_EXIT_CODE = 66 // EX_NOINPUT
 
 func PreCommit(c *context.Context) error {
 	files, err := c.FilesToBeCommitted()
@@ -23,7 +23,7 @@ func PreCommit(c *context.Context) error {
 
 	if len(files) == 0 {
 		fmt.Println("No files to be committed!")
-		return nil
+		os.Exit(NOTHING_STAGED_EXIT_CODE)
 	}
 
 	executables, err := c.ExecutablesForHook(HOOK)

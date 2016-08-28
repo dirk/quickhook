@@ -55,7 +55,14 @@ func (c *Context) ExecutablesForHook(hook string) ([]string, error) {
 	absolutePath := path.Join(c.path, shortPath)
 
 	allFiles, err := ioutil.ReadDir(absolutePath)
-	if err != nil { return nil, err }
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "Missing hook directory: %v\n", absolutePath)
+			os.Exit(66) // EX_NOINPUT
+		} else {
+			return nil, err
+		}
+	}
 
 	var executables []string
 	for _, fileInfo := range allFiles {
