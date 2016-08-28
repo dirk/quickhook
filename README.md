@@ -42,6 +42,10 @@ This informal convention is already followed by many programming languages, lint
 
 Quickhook is designed to be as fast and lightweight as possible. There are a few guiding principles for this:
 
-- Ships as a small, self-contained executable.
+- Ship as a small, self-contained executable.
 - Eschew configuration in favor of rigid adherence to Unix'y approach of composing programs.
 - Do as much as possible in parallel.
+
+## License
+
+Released under the MIT license, see [LICENSE](LICENSE) for details.
