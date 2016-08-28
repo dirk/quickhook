@@ -1,17 +1,17 @@
 # quickhook
 
-Quickhook is a fast, Unix'y, mildly opinionated Git hook runner. It is designed to be called from within Git hook files; it handles run all user-defined hooks, collecting their output, and reporting failures to output and a non-zero exit status.
+Quickhook is a fast, Unix'y, opinionated Git hook runner. It handles running all user-defined hooks, collecting their output, reporting failures, and exiting with a non-zero status code if appropriate.
 
 ## Installation and usage
 
 First you'll need to set quickhook to be called in your Git hooks. To call quickhook before committing you should have a `.git/hooks/pre-commit` file like:
 
-```
+```sh
 #!/bin/sh
 quickhook hook pre-commit
 ```
 
-Quickhook will look for hooks in the `.quickhook/pre-commit/` directory in your repository. See the [`go-vet`](.quickhook/pre-commit/go-vet) file for an example.
+Quickhook will look for hooks in the `.quickhook/pre-commit/` directory in your repository. A hook is any executable file in that directory. See the [`go-vet`](.quickhook/pre-commit/go-vet) file for an example.
 
 ## Writing hooks
 
