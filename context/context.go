@@ -3,46 +3,44 @@ package context
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"os/exec"
 	"path"
-
-	"github.com/libgit2/git2go"
+	"strings"
 )
 
 type Context struct {
 	path string
-	repo *git.Repository
 }
 
 func NewContext(path string) (*Context, error) {
-	repo, err := git.OpenRepository(path)
-	if err != nil {
-		return nil, err
-	}
-
 	context := &Context{
 		path: path,
-		repo: repo,
 	}
 
 	return context, nil
 }
 
 func (c *Context) FilesToBeCommitted() ([]string, error) {
-	statusList, err := c.repo.StatusList(&git.StatusOptions{Show: git.StatusShowIndexOnly})
+	cmd := exec.Command("git", "diff", "--name-only", "--cached")
+
+	outputBytes, err := cmd.CombinedOutput()
 	if err != nil { return nil, err }
 
-	entryCount, err := statusList.EntryCount()
-	if err != nil { return nil, err }
+	output := string(outputBytes)
+	lines := strings.Split(strings.TrimSpace(output), "\n")
 
-	var files []string
-	for i := 0; i < entryCount; i++ {
-		entry, _ := statusList.ByIndex(i)
-		path := entry.HeadToIndex.NewFile.Path
+	// Verify that all the lines are *actually* files
+	for _, line := range lines {
+		stat, err := os.Stat(line)
+		if err != nil { return nil, err }
 
-		files = append(files, path)
+		if stat.IsDir() {
+			return nil, fmt.Errorf("Unexpected directory in list of staged files: %v", line)
+		}
 	}
 
-	return files, nil
+	return lines, nil
 }
 
 func (c *Context) ExecutablesForHook(hook string) ([]string, error) {
