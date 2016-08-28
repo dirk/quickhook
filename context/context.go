@@ -50,7 +50,13 @@ func (c *Context) FilesToBeCommitted() ([]string, error) {
 	return files, nil
 }
 
-func (c *Context) ExecutablesForHook(hook string) ([]string, error) {
+type Executable struct {
+	Name string
+	RelativePath string
+	AbsolutePath string
+}
+
+func (c *Context) ExecutablesForHook(hook string) ([]*Executable, error) {
 	shortPath    := path.Join(".quickhook", hook)
 	absolutePath := path.Join(c.path, shortPath)
 
@@ -64,14 +70,20 @@ func (c *Context) ExecutablesForHook(hook string) ([]string, error) {
 		}
 	}
 
-	var executables []string
+	var executables []*Executable
 	for _, fileInfo := range allFiles {
 		if fileInfo.IsDir() { continue }
 
 		name := fileInfo.Name()
 
 		if (fileInfo.Mode() & 0111) > 0 {
-			executables = append(executables, path.Join(shortPath, name))
+			relativePath := path.Join(shortPath, name)
+
+			executables = append(executables, &Executable{
+				Name: name,
+				RelativePath: relativePath,
+				AbsolutePath: path.Join(c.path, relativePath),
+			})
 		} else {
 			fmt.Printf("Warning: Non-executable file found in %v: %v\n", shortPath, name)
 		}

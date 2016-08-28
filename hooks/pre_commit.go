@@ -36,7 +36,7 @@ func PreCommit(c *context.Context) error {
 		if result.commandError != nil {
 			hasErrors = true
 
-			fmt.Printf("%v:\n", result.executablePath)
+			fmt.Printf("%v:\n", result.executable.Name)
 
 			output := strings.TrimSpace(result.combinedOutput)
 			for _, line := range strings.Split(output, "\n") {
@@ -53,7 +53,7 @@ func PreCommit(c *context.Context) error {
 }
 
 type Result struct {
-	executablePath string
+	executable *context.Executable
 	commandError error
 	combinedOutput string
 }
@@ -61,10 +61,10 @@ type Result struct {
 // Uses a pool sized to the number of CPUs to run all the executables. It's
 // sized to the CPU count so that we fully utilized the hardwire but don't
 // context switch in the OS too much.
-func runExecutablesInParallel(executables []string, files[]string) ([]*Result) {
+func runExecutablesInParallel(executables []*context.Executable, files[]string) ([]*Result) {
 	bufferSize := len(executables)
 
-	in := make(chan string, bufferSize)
+	in := make(chan *context.Executable, bufferSize)
 	out := make(chan *Result, bufferSize)
 
 	pool, err := tunny.CreatePoolGeneric(runtime.NumCPU()).Open()
@@ -95,14 +95,14 @@ func runExecutablesInParallel(executables []string, files[]string) ([]*Result) {
 	return results
 }
 
-func runExecutable(path string, files []string) *Result {
-	cmd := exec.Command(path)
+func runExecutable(executable *context.Executable, files []string) *Result {
+	cmd := exec.Command(executable.AbsolutePath)
 	cmd.Stdin = strings.NewReader(strings.Join(files, "\n"))
 
 	combinedOutputBytes, exitError := cmd.CombinedOutput()
 
 	return &Result{
-		executablePath: path,
+		executable: executable,
 		commandError: exitError,
 		combinedOutput: string(combinedOutputBytes),
 	}
