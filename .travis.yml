@@ -15,4 +15,4 @@ install:
   - go build
 
 script:
-  - bats test/**/*_test.sh
+  - bats $(find test -name "*_test.sh")
