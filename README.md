@@ -1,5 +1,7 @@
 # quickhook
 
+[![Build Status](https://travis-ci.org/dirk/quickhook.svg?branch=master)](https://travis-ci.org/dirk/quickhook)
+
 Quickhook is a fast, Unix'y, opinionated Git hook runner. It handles running all user-defined hooks, collecting their output, reporting failures, and exiting with a non-zero status code if appropriate.
 
 ## Installation and usage
