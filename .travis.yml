@@ -1,0 +1,19 @@
+language: go
+sudo: false
+go:
+  - '1.6'
+
+before_install:
+  # Install Bats
+  - sudo add-apt-repository ppa:duggan/bats -y
+  - sudo apt-get update -q
+  - sudo apt-get install -q bats
+  # Setup Glide
+  - go get github.com/Masterminds/glide
+
+install:
+  - glide install
+  - go build
+
+script:
+  - bats test/**/*_test.sh
