@@ -4,7 +4,19 @@
 
 Quickhook is a fast, Unix'y, opinionated Git hook runner. It handles running all user-defined hooks, collecting their output, reporting failures, and exiting with a non-zero status code if appropriate.
 
-## Installation and usage
+## Installation
+
+If you're on Mac there is a [Homebrew tap for Quickhook](https://github.com/dirk/homebrew-quickhook):
+
+```sh
+brew tap dirk/quickhook
+# Tapped 1 formula (26 files, 20.4K)
+
+brew install quickhook
+# /usr/local/Cellar/quickhook/0.1.2: 2 files, 7.0M, built in 7 seconds
+```
+
+## Usage
 
 First you'll need to set quickhook to be called in your Git hooks. To call quickhook before committing you should have a `.git/hooks/pre-commit` file like:
 
