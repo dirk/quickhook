@@ -9,6 +9,8 @@ import (
 	"github.com/dirk/quickhook/hooks"
 )
 
+const version = "0.1.1"
+
 func main() {
 	context, err := setupContextInWd()
 	if err != nil {
@@ -16,11 +18,14 @@ func main() {
 	}
 
 	app := cli.NewApp()
+	app.Name = "quickhook"
+	app.Version = version
+	app.Usage = "Git hook runner"
 
 	app.Commands = []cli.Command{
 		{
 			Name:  "hook",
-			Usage: "run a hook",
+			Usage: "Run a hook",
 			Action: func(c *cli.Context) error {
 				return cli.ShowSubcommandHelp(c)
 			},
