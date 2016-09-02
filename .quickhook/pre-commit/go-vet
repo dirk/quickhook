@@ -3,4 +3,8 @@
 # Only vet files ending with ".go"
 files=$(cat - | grep "\.go$")
 
+if [ "$files" = "" ]; then
+  exit 0
+fi
+
 echo $files | xargs go tool vet
