@@ -32,8 +32,17 @@ func main() {
 			Subcommands: []cli.Command{
 				cli.Command{
 					Name: "pre-commit",
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name: "no-color",
+							EnvVar: "NO_COLOR,QUICKHOOK_NO_COLOR",
+							Usage: "don't colorize output",
+						},
+					},
 					Action: func(c *cli.Context) error {
-						err := hooks.PreCommit(context)
+						err := hooks.PreCommit(context, &hooks.PreCommitOpts{
+							NoColor: c.Bool("no-color"),
+						})
 						if err != nil { panic(err) }
 						return nil
 					},

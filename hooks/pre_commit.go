@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/jeffail/tunny"
 
 	"github.com/dirk/quickhook/context"
@@ -17,12 +18,18 @@ const HOOK = "pre-commit"
 const FAILED_EXIT_CODE         = 65 // EX_DATAERR - hooks didn't pass
 const NOTHING_STAGED_EXIT_CODE = 66 // EX_NOINPUT
 
-func PreCommit(c *context.Context) error {
+type PreCommitOpts struct  {
+	NoColor bool
+}
+
+func PreCommit(c *context.Context, opts *PreCommitOpts) error {
+	color.NoColor = opts.NoColor
+
 	files, err := c.FilesToBeCommitted()
 	if err != nil { return err }
 
 	if len(files) == 0 {
-		fmt.Println("No files to be committed!")
+		color.Yellow("No files to be committed!")
 		os.Exit(NOTHING_STAGED_EXIT_CODE)
 	}
 
@@ -39,9 +46,7 @@ func PreCommit(c *context.Context) error {
 			fmt.Printf("%v:\n", result.executable.Name)
 
 			output := strings.TrimSpace(result.combinedOutput)
-			for _, line := range strings.Split(output, "\n") {
-				fmt.Printf("  %v\n", line)
-			}
+			color.Red(output)
 		}
 	}
 
