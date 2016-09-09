@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/urfave/cli"
@@ -33,15 +34,31 @@ func main() {
 				cli.Command{
 					Name: "pre-commit",
 					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name: "no-color",
-							EnvVar: "NO_COLOR,QUICKHOOK_NO_COLOR",
-							Usage: "don't colorize output",
-						},
+						noColorFlag(),
 					},
 					Action: func(c *cli.Context) error {
 						err := hooks.PreCommit(context, &hooks.PreCommitOpts{
 							NoColor: c.Bool("no-color"),
+						})
+						if err != nil { panic(err) }
+						return nil
+					},
+				},
+				cli.Command{
+					Name: "commit-msg",
+					Flags: []cli.Flag{
+						noColorFlag(),
+					},
+					Action: func(c *cli.Context) error {
+						messageTempFile := c.Args().Get(0)
+						if messageTempFile == "" {
+							fmt.Println("Missing message temp file argument")
+							os.Exit(1)
+						}
+
+						err := hooks.CommitMsg(context, &hooks.CommitMsgOpts{
+							NoColor: c.Bool("no-color"),
+							MessageTempFile: messageTempFile,
 						})
 						if err != nil { panic(err) }
 						return nil
@@ -62,4 +79,12 @@ func setupContextInWd() (*context.Context, error) {
 	}
 
 	return context.NewContext(wd)
+}
+
+func noColorFlag() cli.Flag {
+	return cli.BoolFlag{
+		Name: "no-color",
+		EnvVar: "NO_COLOR,QUICKHOOK_NO_COLOR",
+		Usage: "don't colorize output",
+	}
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/dirk/quickhook/context"
 )
 
-const HOOK = "pre-commit"
+const PRE_COMMIT_HOOK = "pre-commit"
 
 const FAILED_EXIT_CODE         = 65 // EX_DATAERR - hooks didn't pass
 const NOTHING_STAGED_EXIT_CODE = 66 // EX_NOINPUT
@@ -33,20 +33,20 @@ func PreCommit(c *context.Context, opts *PreCommitOpts) error {
 		os.Exit(NOTHING_STAGED_EXIT_CODE)
 	}
 
-	executables, err := c.ExecutablesForHook(HOOK)
+	executables, err := c.ExecutablesForHook(PRE_COMMIT_HOOK)
 	if err != nil { return err }
 
 	results := runExecutablesInParallel(executables, files)
 	hasErrors := false
 
 	for _, result := range results {
+		fmt.Printf("%v: %v\n", result.executable.Name, errToStringStatus(result.commandError))
+
 		if result.commandError != nil {
 			hasErrors = true
 
-			fmt.Printf("%v:\n", result.executable.Name)
-
 			output := strings.TrimSpace(result.combinedOutput)
-			color.Red(output)
+			if output != "" { color.Red(output) }
 		}
 	}
 
@@ -84,7 +84,7 @@ func runExecutablesInParallel(executables []*context.Executable, files[]string) 
 			_, err := pool.SendWork(func() {
 				executable := <- in
 
-				out <- runExecutable(executable, files)
+				out <- runPreCommitExecutable(executable, files)
 			})
 
 			// Something real bad happened
@@ -100,7 +100,7 @@ func runExecutablesInParallel(executables []*context.Executable, files[]string) 
 	return results
 }
 
-func runExecutable(executable *context.Executable, files []string) *Result {
+func runPreCommitExecutable(executable *context.Executable, files []string) *Result {
 	cmd := exec.Command(executable.AbsolutePath)
 	cmd.Stdin = strings.NewReader(strings.Join(files, "\n"))
 
