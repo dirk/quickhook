@@ -29,6 +29,8 @@ describe 'pre-commit' do
     FileUtils.mkdir_p hook_dir
 
     system 'git init --quiet .'
+    system 'echo "[user] \n name = example \n email = example@example.com" >> .git/config'
+
     system 'echo "Changed!" > example'
     system 'git add example'
   end
