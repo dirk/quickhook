@@ -38,7 +38,13 @@ func (c *Context) FilesToBeCommitted() ([]string, error) {
 		if len(file) == 0 { continue }
 
 		stat, err := os.Stat(file)
-		if err != nil { return nil, err }
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue // Just skip files that were deleted
+			} else {
+				return nil, err
+			}
+		}
 
 		if stat.IsDir() {
 			return nil, fmt.Errorf("Unexpected directory in list of staged files: %v", file)
