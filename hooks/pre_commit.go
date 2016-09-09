@@ -3,6 +3,7 @@ package hooks
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
 
@@ -10,10 +11,9 @@ import (
 	"github.com/jeffail/tunny"
 
 	"github.com/dirk/quickhook/context"
-	"github.com/dirk/quickhook/util"
 )
 
-const PRE_COMMIT_HOOK = "pre-commit"
+const HOOK = "pre-commit"
 
 const FAILED_EXIT_CODE         = 65 // EX_DATAERR - hooks didn't pass
 const NOTHING_STAGED_EXIT_CODE = 66 // EX_NOINPUT
@@ -33,19 +33,19 @@ func PreCommit(c *context.Context, opts *PreCommitOpts) error {
 		os.Exit(NOTHING_STAGED_EXIT_CODE)
 	}
 
-	executables, err := c.ExecutablesForHook(PRE_COMMIT_HOOK)
+	executables, err := c.ExecutablesForHook(HOOK)
 	if err != nil { return err }
 
 	results := runExecutablesInParallel(executables, files)
 	hasErrors := false
 
 	for _, result := range results {
-		if result.CommandError != nil {
+		if result.commandError != nil {
 			hasErrors = true
 
-			fmt.Printf("%v:\n", result.Executable.Name)
+			fmt.Printf("%v:\n", result.executable.Name)
 
-			output := strings.TrimSpace(result.CombinedOutput)
+			output := strings.TrimSpace(result.combinedOutput)
 			color.Red(output)
 		}
 	}
@@ -57,14 +57,20 @@ func PreCommit(c *context.Context, opts *PreCommitOpts) error {
 	return nil
 }
 
+type Result struct {
+	executable *context.Executable
+	commandError error
+	combinedOutput string
+}
+
 // Uses a pool sized to the number of CPUs to run all the executables. It's
 // sized to the CPU count so that we fully utilized the hardwire but don't
 // context switch in the OS too much.
-func runExecutablesInParallel(executables []*context.Executable, files[]string) ([]*util.ExecutableResult) {
+func runExecutablesInParallel(executables []*context.Executable, files[]string) ([]*Result) {
 	bufferSize := len(executables)
 
 	in := make(chan *context.Executable, bufferSize)
-	out := make(chan *util.ExecutableResult, bufferSize)
+	out := make(chan *Result, bufferSize)
 
 	pool, err := tunny.CreatePoolGeneric(runtime.NumCPU()).Open()
 	if err != nil { panic(err) }
@@ -78,7 +84,7 @@ func runExecutablesInParallel(executables []*context.Executable, files[]string) 
 			_, err := pool.SendWork(func() {
 				executable := <- in
 
-				out <- util.RunExecutable(executable, files)
+				out <- runExecutable(executable, files)
 			})
 
 			// Something real bad happened
@@ -86,10 +92,23 @@ func runExecutablesInParallel(executables []*context.Executable, files[]string) 
 		}()
 	}
 
-	var results []*util.ExecutableResult
+	var results []*Result
 	for i := 0; i < bufferSize; i++ {
 		results = append(results, <- out)
 	}
 
 	return results
+}
+
+func runExecutable(executable *context.Executable, files []string) *Result {
+	cmd := exec.Command(executable.AbsolutePath)
+	cmd.Stdin = strings.NewReader(strings.Join(files, "\n"))
+
+	combinedOutputBytes, exitError := cmd.CombinedOutput()
+
+	return &Result{
+		executable: executable,
+		commandError: exitError,
+		combinedOutput: string(combinedOutputBytes),
+	}
 }
