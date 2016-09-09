@@ -10,7 +10,7 @@ import (
 	"github.com/dirk/quickhook/hooks"
 )
 
-const version = "0.1.2"
+const version = "1.0.0"
 
 func main() {
 	context, err := setupContextInWd()
