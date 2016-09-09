@@ -20,6 +20,7 @@ removeAllTrace() {
 runHook() {
   cd test/tmp
   run ../../quickhook hook pre-commit --no-color
+  cd ../..
 }
 
 HOOK_DIR=test/tmp/.quickhook/pre-commit
@@ -34,8 +35,9 @@ HOOK_DIR=test/tmp/.quickhook/pre-commit
   runHook
 
   [ "$status" -ne 0 ]
-  [ "${lines[0]}" = "fails:" ]
+  [ "${lines[0]}" = "fails: fail" ]
   [ "${lines[1]}" = "failed" ]
+  [ "${lines[2]}" = "passes: ok" ]
 }
 
 @test "pre-commit passes if all hooks pass" {
@@ -48,5 +50,6 @@ HOOK_DIR=test/tmp/.quickhook/pre-commit
   runHook
 
   [ "$status" -eq 0 ]
-  [ "$output" = "" ]
+  [ "${lines[0]}" = "passes1: ok" ]
+  [ "${lines[1]}" = "passes2: ok" ]
 }
