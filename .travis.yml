@@ -3,10 +3,6 @@ go:
   - '1.6'
 
 before_install:
-  # Install Bats
-  - sudo add-apt-repository ppa:duggan/bats -y
-  - sudo apt-get update -q
-  - sudo apt-get install -q bats
   # Setup Glide
   - go get github.com/Masterminds/glide
 
@@ -14,5 +10,11 @@ install:
   - glide install
   - go build
 
+before_script:
+  # Install Ruby and Bundler
+  - sudo apt-get -q install ruby
+  - gem install bundler
+  - bundle install
+
 script:
-  - bats $(find test -name "*_test.sh")
+  - bundle exec rspec
