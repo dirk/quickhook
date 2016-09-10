@@ -41,7 +41,7 @@ func main() {
 					Action: func(c *cli.Context) error {
 						err := hooks.PreCommit(context, &hooks.PreCommitOpts{
 							All: c.Bool("all"),
-							Files: c.StringSlice("files"),
+							Files: c.String("files"),
 							NoColor: c.Bool("no-color"),
 						})
 						if err != nil { panic(err) }
@@ -101,8 +101,8 @@ func allFlag() cli.Flag {
 }
 
 func filesFlag() cli.Flag {
-	return cli.StringSliceFlag{
-		Name: "files",
-		Usage: "run on the given files",
+	return cli.StringFlag{
+		Name: "files, F",
+		Usage: "run on the given comma-separated list of files",
 	}
 }
