@@ -27,12 +27,27 @@ func (c *Context) FilesToBeCommitted() ([]string, error) {
 	outputBytes, err := cmd.CombinedOutput()
 	if err != nil { return nil, err }
 
-	output := string(outputBytes)
-	lines := strings.Split(output, "\n")
+	lines := strings.Split(string(outputBytes), "\n")
 
+	return filterLinesForFiles(lines)
+}
+
+func (c *Context) AllFiles() ([]string, error) {
+	cmd := exec.Command("git", "ls-files")
+
+	outputBytes, err := cmd.CombinedOutput()
+	if err != nil { return nil, err }
+
+	lines := strings.Split(string(outputBytes), "\n")
+
+	return filterLinesForFiles(lines)
+}
+
+// Filters an array of lines, returns only lines that are valid paths to
+// a file that exists in the filesystem.
+func filterLinesForFiles(lines []string) ([]string, error) {
 	var files []string
 
-	// Verify that all the lines are *actually* files
 	for _, line := range lines {
 		file := strings.TrimSpace(line)
 		if len(file) == 0 { continue }
@@ -40,14 +55,14 @@ func (c *Context) FilesToBeCommitted() ([]string, error) {
 		stat, err := os.Stat(file)
 		if err != nil {
 			if os.IsNotExist(err) {
-				continue // Just skip files that were deleted
+				continue
 			} else {
 				return nil, err
 			}
 		}
 
 		if stat.IsDir() {
-			return nil, fmt.Errorf("Unexpected directory in list of staged files: %v", file)
+			continue
 		}
 
 		files = append(files, file)
