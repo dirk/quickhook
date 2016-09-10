@@ -35,11 +35,13 @@ func main() {
 					Name: "pre-commit",
 					Flags: []cli.Flag{
 						allFlag(),
+						filesFlag(),
 						noColorFlag(),
 					},
 					Action: func(c *cli.Context) error {
 						err := hooks.PreCommit(context, &hooks.PreCommitOpts{
 							All: c.Bool("all"),
+							Files: c.StringSlice("files"),
 							NoColor: c.Bool("no-color"),
 						})
 						if err != nil { panic(err) }
@@ -95,5 +97,12 @@ func allFlag() cli.Flag {
 	return cli.BoolFlag{
 		Name: "all, a",
 		Usage: "run on all Git-tracked files",
+	}
+}
+
+func filesFlag() cli.Flag {
+	return cli.StringSliceFlag{
+		Name: "files",
+		Usage: "run on the given files",
 	}
 }

@@ -43,6 +43,19 @@ func (c *Context) AllFiles() ([]string, error) {
 	return filterLinesForFiles(lines)
 }
 
+func IsFile(path string) (bool, error) {
+	stat, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+
+	return !stat.IsDir(), nil
+}
+
 // Filters an array of lines, returns only lines that are valid paths to
 // a file that exists in the filesystem.
 func filterLinesForFiles(lines []string) ([]string, error) {
@@ -52,20 +65,12 @@ func filterLinesForFiles(lines []string) ([]string, error) {
 		file := strings.TrimSpace(line)
 		if len(file) == 0 { continue }
 
-		stat, err := os.Stat(file)
-		if err != nil {
-			if os.IsNotExist(err) {
-				continue
-			} else {
-				return nil, err
-			}
-		}
+		isFile, err := IsFile(file)
+		if err != nil { return nil, err }
 
-		if stat.IsDir() {
-			continue
+		if isFile {
+			files = append(files, file)
 		}
-
-		files = append(files, file)
 	}
 
 	return files, nil

@@ -20,11 +20,24 @@ const NOTHING_STAGED_EXIT_CODE = 66 // EX_NOINPUT
 
 type PreCommitOpts struct  {
 	NoColor bool
+	Files []string
 	All bool
 }
 
 func (opts *PreCommitOpts) ListFiles(c *context.Context) ([]string, error) {
-	if opts.All {
+	if len(opts.Files) > 0 {
+		for _, file := range opts.Files {
+			isFile, err := context.IsFile(file)
+			if err != nil { return nil, err }
+
+			if !isFile {
+				color.Yellow(fmt.Sprintf("File not found: %v", file))
+				os.Exit(NOTHING_STAGED_EXIT_CODE)
+			}
+		}
+
+		return opts.Files, nil
+	} else if opts.All {
 		return c.AllFiles()
 	} else {
 		return c.FilesToBeCommitted()
