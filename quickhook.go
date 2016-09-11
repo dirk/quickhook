@@ -74,7 +74,7 @@ func main() {
 			Name: "install",
 			Usage: "install Quickhook shims into .git/hooks",
 			Action: func(c *cli.Context) error {
-				err := Install(context)
+				err := Install(context, true)
 				if err != nil { panic(err) }
 				return nil
 			},
