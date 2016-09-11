@@ -62,4 +62,4 @@ Quickhook is designed to be as fast and lightweight as possible. There are a few
 
 ## License
 
-Released under the MIT license, see [LICENSE](LICENSE) for details.
+Released under the Modified BSD license, see [LICENSE](LICENSE) for details.
