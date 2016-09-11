@@ -40,11 +40,13 @@ func main() {
 					},
 					Action: func(c *cli.Context) error {
 						err := hooks.PreCommit(context, &hooks.PreCommitOpts{
-							All: c.Bool("all"),
-							Files: c.String("files"),
+							All:     c.Bool("all"),
+							Files:   c.String("files"),
 							NoColor: c.Bool("no-color"),
 						})
-						if err != nil { panic(err) }
+						if err != nil {
+							panic(err)
+						}
 						return nil
 					},
 				},
@@ -61,21 +63,31 @@ func main() {
 						}
 
 						err := hooks.CommitMsg(context, &hooks.CommitMsgOpts{
-							NoColor: c.Bool("no-color"),
+							NoColor:         c.Bool("no-color"),
 							MessageTempFile: messageTempFile,
 						})
-						if err != nil { panic(err) }
+						if err != nil {
+							panic(err)
+						}
 						return nil
 					},
 				},
 			},
 		},
 		{
-			Name: "install",
-			Usage: "install Quickhook shims into .git/hooks",
+			Name:      "install",
+			Usage:     "Install Quickhook shims into .git/hooks",
+			ArgsUsage: " ", // Don't show "[arguments...]"
+			Flags: []cli.Flag{
+				yesFlag(),
+			},
 			Action: func(c *cli.Context) error {
-				err := Install(context, true)
-				if err != nil { panic(err) }
+				prompt := c.Bool("yes") != true
+
+				err := Install(context, prompt)
+				if err != nil {
+					panic(err)
+				}
 				return nil
 			},
 		},
@@ -96,22 +108,29 @@ func setupContextInWd() (*context.Context, error) {
 
 func noColorFlag() cli.Flag {
 	return cli.BoolFlag{
-		Name: "no-color",
+		Name:   "no-color",
 		EnvVar: "NO_COLOR,QUICKHOOK_NO_COLOR",
-		Usage: "don't colorize output",
+		Usage:  "Don't colorize output",
 	}
 }
 
 func allFlag() cli.Flag {
 	return cli.BoolFlag{
-		Name: "all, a",
-		Usage: "run on all Git-tracked files",
+		Name:  "all, a",
+		Usage: "Run on all Git-tracked files",
 	}
 }
 
 func filesFlag() cli.Flag {
 	return cli.StringFlag{
-		Name: "files, F",
-		Usage: "run on the given comma-separated list of files",
+		Name:  "files, F",
+		Usage: "Run on the given comma-separated list of files",
+	}
+}
+
+func yesFlag() cli.Flag {
+	return cli.BoolFlag{
+		Name:  "yes, y",
+		Usage: "Assume yes for all prompts",
 	}
 }
