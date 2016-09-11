@@ -18,22 +18,35 @@ brew install quickhook
 
 ## Usage
 
-First you'll need to set quickhook to be called in your Git hooks. To call quickhook before committing you should have a `.git/hooks/pre-commit` file like:
+First you'll need to set Quickhook to be called in your Git hooks. The `quickhook install` command will discover hooks defined in the `.quickhook` directory and create Git hook shims for those. For example, the below is what you can expect if you clone this repository and install the shims:
 
-```sh
-#!/bin/sh
-quickhook hook pre-commit
+```
+$ quickhook install
+Create file .git/hooks/commit-msg? [yn] y
+Installed shim .git/hooks/commit-msg
+Create file .git/hooks/pre-commit? [yn] y
+Installed shim .git/hooks/pre-commit
 ```
 
-Quickhook will look for hooks in the `.quickhook/pre-commit/` directory in your repository. A hook is any executable file in that directory. See the [`go-vet`](.quickhook/pre-commit/go-vet) file for an example.
+The `hook` sub-commands have a some hook-specific options. For example, these are some of the options you can use with the pre-commit hook command:
+
+```sh
+# Run the pre-commit hooks on all Git-tracked files in the repository
+quickhook hook pre-commit --all
+
+# Run them on just one or more files
+quickhook hook pre-commit --files hooks/commit_msg.go hooks/pre_commit.go
+```
 
 ## Writing hooks
 
-Right now quickhook only supports pre-commit hooks.
+Quickhook will look for hooks in a corresponding sub-directory of the `.quickhook` directory in your repository. For example, it will look for pre-commit hooks in `.quickhook/pre-commit/`. A hook is any executable file in that directory. See the [`go-vet`](.quickhook/pre-commit/go-vet) file for an example.
 
 ### pre-commit
 
-Pre-commit hooks will receive the list of staged files on stdin. They are expected to write their result to stdout/stderr (quickhook doesn't care), and exit with a non-zero exit code if the commit should be aborted.
+Pre-commit hooks receive the list of staged files separated by newlines on stdin. They are expected to write their result to stdout/stderr (Quickhook doesn't care). If they exit with a non-zero exit code then the commit will be aborted and their output displayed to the user.
+
+**Note**: Pre-commit hooks will be executed in parallel and should not mutate the local repository state.
 
 File-and-line-specific errors should be written in the following format:
 
@@ -50,7 +63,13 @@ A more formal definition of an error line is:
 - Any printable character describing the error
 - A newline (`\n`) terminating the error line
 
-This informal convention is already followed by many programming languages, linters, and so forth.
+This informal Unix convention is already followed by many programming languages, linters, and so forth.
+
+### commit-msg
+
+Commit-message hooks are run sequentially. They receive a single argument: a path to a temporary file containing the message for the commit. If they exit with a non-zero exit code the commit will be aborted and any stdout/stderr output displayed to the user.
+
+Given that they are run sequentially, `commit-msg` hooks are allowed to mutate the commit message temporary file.
 
 ## Performance
 
