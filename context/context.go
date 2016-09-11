@@ -25,7 +25,9 @@ func (c *Context) FilesToBeCommitted() ([]string, error) {
 	cmd := exec.Command("git", "diff", "--name-only", "--cached")
 
 	outputBytes, err := cmd.CombinedOutput()
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	lines := strings.Split(string(outputBytes), "\n")
 
@@ -36,7 +38,9 @@ func (c *Context) AllFiles() ([]string, error) {
 	cmd := exec.Command("git", "ls-files")
 
 	outputBytes, err := cmd.CombinedOutput()
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	lines := strings.Split(string(outputBytes), "\n")
 
@@ -63,10 +67,14 @@ func filterLinesForFiles(lines []string) ([]string, error) {
 
 	for _, line := range lines {
 		file := strings.TrimSpace(line)
-		if len(file) == 0 { continue }
+		if len(file) == 0 {
+			continue
+		}
 
 		isFile, err := IsFile(file)
-		if err != nil { return nil, err }
+		if err != nil {
+			return nil, err
+		}
 
 		if isFile {
 			files = append(files, file)
@@ -77,13 +85,13 @@ func filterLinesForFiles(lines []string) ([]string, error) {
 }
 
 type Executable struct {
-	Name string
+	Name         string
 	RelativePath string
 	AbsolutePath string
 }
 
 func (c *Context) ExecutablesForHook(hook string) ([]*Executable, error) {
-	shortPath    := path.Join(".quickhook", hook)
+	shortPath := path.Join(".quickhook", hook)
 	absolutePath := path.Join(c.path, shortPath)
 
 	allFiles, err := ioutil.ReadDir(absolutePath)
@@ -98,7 +106,9 @@ func (c *Context) ExecutablesForHook(hook string) ([]*Executable, error) {
 
 	var executables []*Executable
 	for _, fileInfo := range allFiles {
-		if fileInfo.IsDir() { continue }
+		if fileInfo.IsDir() {
+			continue
+		}
 
 		name := fileInfo.Name()
 
@@ -106,7 +116,7 @@ func (c *Context) ExecutablesForHook(hook string) ([]*Executable, error) {
 			relativePath := path.Join(shortPath, name)
 
 			executables = append(executables, &Executable{
-				Name: name,
+				Name:         name,
 				RelativePath: relativePath,
 				AbsolutePath: path.Join(c.path, relativePath),
 			})
@@ -116,4 +126,84 @@ func (c *Context) ExecutablesForHook(hook string) ([]*Executable, error) {
 	}
 
 	return executables, nil
+}
+
+func (c *Context) ListHooks() ([]string, error) {
+	hooksPath := path.Join(c.path, ".quickhook")
+
+	entries, err := ioutil.ReadDir(hooksPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "Missing hooks directory: %v\n", hooksPath)
+			os.Exit(66) // EX_NOINPUT
+		} else {
+			return nil, err
+		}
+	}
+
+	var hooks []string
+	for _, entry := range entries {
+		if entry.IsDir() && isHook(entry.Name()) {
+			hooks = append(hooks, entry.Name())
+		}
+	}
+
+	return hooks, nil
+}
+
+func isHook(name string) bool {
+	switch name {
+	case
+		"pre-commit",
+		"commit-msg":
+		return true
+	}
+
+	return false
+}
+
+func shimCommandForHook(hook string) (string, error) {
+	var args string
+
+	switch hook {
+	case "pre-commit":
+		args = "pre-commit"
+	case "commit-msg":
+		args = "commit-msg $1"
+	default:
+		return "", fmt.Errorf("invalid hook: %v", hook)
+	}
+
+	return fmt.Sprintf("quickhook hook %v", args), nil
+}
+
+func (c *Context) InstallShim(hook string) error {
+	shimPath := path.Join(c.path, ".git", "hooks", hook)
+	fmt.Println(shimPath)
+
+	command, err := shimCommandForHook(hook)
+	if err != nil {
+		return err
+	}
+
+	lines := []string{
+		"#!/bin/sh",
+		command,
+		"", // So we get a trailing newline when we join
+	}
+
+	file, err := os.Create(shimPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	err = os.Chmod(shimPath, 0755)
+	if err != nil {
+		return err
+	}
+
+	file.WriteString(strings.Join(lines, "\n"))
+
+	return nil
 }

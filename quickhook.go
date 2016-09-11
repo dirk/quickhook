@@ -70,6 +70,15 @@ func main() {
 				},
 			},
 		},
+		{
+			Name: "install",
+			Usage: "install Quickhook shims into .git/hooks",
+			Action: func(c *cli.Context) error {
+				err := Install(context)
+				if err != nil { panic(err) }
+				return nil
+			},
+		},
 	}
 
 	app.Run(os.Args)
