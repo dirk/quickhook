@@ -15,13 +15,13 @@ import (
 
 const PRE_COMMIT_HOOK = "pre-commit"
 
-const FAILED_EXIT_CODE         = 65 // EX_DATAERR - hooks didn't pass
+const FAILED_EXIT_CODE = 65         // EX_DATAERR - hooks didn't pass
 const NOTHING_STAGED_EXIT_CODE = 66 // EX_NOINPUT
 
-type PreCommitOpts struct  {
+type PreCommitOpts struct {
 	NoColor bool
-	Files string
-	All bool
+	Files   string
+	All     bool
 }
 
 func (opts *PreCommitOpts) ListFiles(c *context.Context) ([]string, error) {
@@ -30,7 +30,9 @@ func (opts *PreCommitOpts) ListFiles(c *context.Context) ([]string, error) {
 
 		for _, file := range files {
 			isFile, err := context.IsFile(file)
-			if err != nil { return nil, err }
+			if err != nil {
+				return nil, err
+			}
 
 			if !isFile {
 				color.Yellow(fmt.Sprintf("File not found: %v", file))
@@ -50,7 +52,9 @@ func PreCommit(c *context.Context, opts *PreCommitOpts) error {
 	color.NoColor = opts.NoColor
 
 	files, err := opts.ListFiles(c)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	if len(files) == 0 {
 		color.Yellow("No files to be committed!")
@@ -58,7 +62,9 @@ func PreCommit(c *context.Context, opts *PreCommitOpts) error {
 	}
 
 	executables, err := c.ExecutablesForHook(PRE_COMMIT_HOOK)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	results := runExecutablesInParallel(executables, files)
 	hasErrors := false
@@ -70,7 +76,9 @@ func PreCommit(c *context.Context, opts *PreCommitOpts) error {
 			hasErrors = true
 
 			output := strings.TrimSpace(result.combinedOutput)
-			if output != "" { color.Red(output) }
+			if output != "" {
+				color.Red(output)
+			}
 		}
 	}
 
@@ -82,22 +90,24 @@ func PreCommit(c *context.Context, opts *PreCommitOpts) error {
 }
 
 type Result struct {
-	executable *context.Executable
-	commandError error
+	executable     *context.Executable
+	commandError   error
 	combinedOutput string
 }
 
 // Uses a pool sized to the number of CPUs to run all the executables. It's
 // sized to the CPU count so that we fully utilized the hardwire but don't
 // context switch in the OS too much.
-func runExecutablesInParallel(executables []*context.Executable, files[]string) ([]*Result) {
+func runExecutablesInParallel(executables []*context.Executable, files []string) []*Result {
 	bufferSize := len(executables)
 
 	in := make(chan *context.Executable, bufferSize)
 	out := make(chan *Result, bufferSize)
 
 	pool, err := tunny.CreatePoolGeneric(runtime.NumCPU()).Open()
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 
 	defer pool.Close()
 
@@ -106,19 +116,21 @@ func runExecutablesInParallel(executables []*context.Executable, files[]string) 
 
 		go func() {
 			_, err := pool.SendWork(func() {
-				executable := <- in
+				executable := <-in
 
 				out <- runPreCommitExecutable(executable, files)
 			})
 
 			// Something real bad happened
-			if err != nil { panic(err) }
+			if err != nil {
+				panic(err)
+			}
 		}()
 	}
 
 	var results []*Result
 	for i := 0; i < bufferSize; i++ {
-		results = append(results, <- out)
+		results = append(results, <-out)
 	}
 
 	return results
@@ -131,8 +143,8 @@ func runPreCommitExecutable(executable *context.Executable, files []string) *Res
 	combinedOutputBytes, exitError := cmd.CombinedOutput()
 
 	return &Result{
-		executable: executable,
-		commandError: exitError,
+		executable:     executable,
+		commandError:   exitError,
 		combinedOutput: string(combinedOutputBytes),
 	}
 }

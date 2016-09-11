@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-    "strings"
+	"strings"
 
 	"github.com/fatih/color"
 
