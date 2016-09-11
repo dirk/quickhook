@@ -13,7 +13,7 @@ brew tap dirk/quickhook
 # Tapped 1 formula (26 files, 20.4K)
 
 brew install quickhook
-# /usr/local/Cellar/quickhook/0.1.2: 2 files, 7.0M, built in 7 seconds
+# /usr/local/Cellar/quickhook/1.2.0: 2 files, 7M, built in 8 seconds
 ```
 
 ## Usage
