@@ -39,9 +39,14 @@ func main() {
 						noColorFlag(),
 					},
 					Action: func(c *cli.Context) error {
+						files := []string{}
+						if c.Bool("files") {
+							files = c.Args()
+						}
+
 						err := hooks.PreCommit(context, &hooks.PreCommitOpts{
 							All:     c.Bool("all"),
-							Files:   c.String("files"),
+							Files:   files,
 							NoColor: c.Bool("no-color"),
 						})
 						if err != nil {
@@ -122,7 +127,7 @@ func allFlag() cli.Flag {
 }
 
 func filesFlag() cli.Flag {
-	return cli.StringFlag{
+	return cli.BoolFlag{
 		Name:  "files, F",
 		Usage: "Run on the given comma-separated list of files",
 	}
