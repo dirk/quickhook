@@ -60,6 +60,19 @@ func IsFile(path string) (bool, error) {
 	return !stat.IsDir(), nil
 }
 
+func IsDir(path string) (bool, error) {
+	stat, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+
+	return stat.IsDir(), nil
+}
+
 // Filters an array of lines, returns only lines that are valid paths to
 // a file that exists in the filesystem.
 func filterLinesForFiles(lines []string) ([]string, error) {

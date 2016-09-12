@@ -39,7 +39,7 @@ func Install(c *context.Context, prompt bool) error {
 }
 
 func promptForInstallShim(hook string, shimPath string) (bool, error) {
-	exists, err := exists(shimPath)
+	exists, err := context.IsDir(shimPath)
 	if err != nil {
 		return false, err
 	}
@@ -77,14 +77,4 @@ func promptForInstallShim(hook string, shimPath string) (bool, error) {
 	}
 
 	return false, fmt.Errorf("unreachable")
-}
-
-func exists(path string) (bool, error) {
-	_, err := os.Stat(path)
-
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-
-	return err == nil, err
 }
