@@ -54,11 +54,6 @@ func PreCommit(c *context.Context, opts *PreCommitOpts) error {
 		return err
 	}
 
-	if len(files) == 0 {
-		color.Yellow("No files to be committed!")
-		os.Exit(NOTHING_STAGED_EXIT_CODE)
-	}
-
 	executables, err := c.ExecutablesForHook(PRE_COMMIT_HOOK)
 	if err != nil {
 		return err

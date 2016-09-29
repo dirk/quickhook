@@ -90,4 +90,14 @@ describe 'pre-commit' do
 
     expect(result.status).to eq 0
   end
+
+  it 'passes if no files to be committed' do
+    system 'git commit --message "Commit example" --quiet --no-verify'
+
+    # No file changes, emulating a `git commit --amend`.
+    result = run_hook
+
+    expect(result.status).to eq 0
+    expect(result.lines).to eq([])
+  end
 end
