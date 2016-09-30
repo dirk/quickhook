@@ -19,6 +19,10 @@ type CommitMsgOpts struct {
 }
 
 func CommitMsg(c *context.Context, opts *CommitMsgOpts) error {
+	if opts.NoColor {
+		color.NoColor = true
+	}
+
 	executables, err := c.ExecutablesForHook(HOOK)
 	if err != nil {
 		return err

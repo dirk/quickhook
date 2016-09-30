@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'pty'
 
 describe 'pre-commit' do
   let(:hook_dir) { '.quickhook/pre-commit' }
@@ -15,14 +16,47 @@ describe 'pre-commit' do
 
   Result = Struct.new(:status, :output) do
     def lines
-      self.output.strip.split("\n")
+      self.output.strip.split(/[\r\n]+/)
     end
   end
 
-  def run_hook
-    output = `../../quickhook hook pre-commit --no-color`
+  def run_hook(pty: true, options: nil)
+    command = "../../quickhook hook pre-commit #{options}"
 
+    if pty
+      run_hook_with_pty command
+    else
+      run_hook_without_pty command
+    end
+  end
+
+  def run_hook_without_pty(command)
+    output = IO.popen(command, &:read)
     Result.new $?.exitstatus, output
+  end
+
+  def run_hook_with_pty(command)
+    $stdout.sync = true
+    PTY.spawn command do |ttyout, ttyin, pid|
+      ttyin.close
+
+      output = ''
+      begin
+        loop do
+          begin
+            output << ttyout.read_nonblock(4096)
+          rescue IO::WaitReadable
+            IO.select([ttyout], nil, nil, 1)
+            retry
+          end
+        end
+      rescue Errno::EIO
+      rescue EOFError
+      end
+
+      _, status = Process.waitpid2(pid)
+      return Result.new(status.exitstatus, output)
+    end
   end
 
   before do
@@ -55,13 +89,15 @@ describe 'pre-commit' do
     write_file "#{hook_dir}/fails", "#!/bin/bash \n echo \"failed\" \n exit 1"
     system "chmod +x #{hook_dir}/*"
 
-    result = run_hook
-
+    result = run_hook(pty: false)
     expect(result.status).not_to eq 0
-    expect(result.lines).to eq([
-      'fails: fail',
-      'failed',
-    ])
+    expect(result.lines).to eq(['fails: fail', 'failed'])
+
+    result = run_hook(pty: true, options: '--no-color')
+    expect(result.lines).to eq(["fails: fail", "failed"])
+
+    result = run_hook(pty: true)
+    expect(result.lines).to eq(["fails: \e[31mfail\e[0m", "\e[31mfailed", "\e[0m"])
   end
 
   it "passes if all hooks pass" do
@@ -69,13 +105,15 @@ describe 'pre-commit' do
     write_file "#{hook_dir}/passes2", "#!/bin/bash \n echo \"passed\" \n exit 0"
     system "chmod +x #{hook_dir}/*"
 
-    result = run_hook
-
+    result = run_hook(pty: false)
     expect(result.status).to eq 0
-    expect(result.lines.sort).to eq([
-      'passes1: ok',
-      'passes2: ok',
-    ])
+    expect(result.lines.sort).to eq(["passes1: ok", "passes2: ok"])
+
+    result = run_hook(pty: true, options: '--no-color')
+    expect(result.lines.sort).to eq(["passes1: ok", "passes2: ok"])
+
+    result = run_hook(pty: true)
+    expect(result.lines.sort).to eq(["passes1: \e[32mok\e[0m", "passes2: \e[32mok\e[0m"])
   end
 
   it 'handles deleted files' do
