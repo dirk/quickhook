@@ -47,7 +47,9 @@ func (opts *PreCommitOpts) ListFiles(c *context.Context) ([]string, error) {
 }
 
 func PreCommit(c *context.Context, opts *PreCommitOpts) error {
-	color.NoColor = opts.NoColor
+	if opts.NoColor {
+		color.NoColor = true
+	}
 
 	files, err := opts.ListFiles(c)
 	if err != nil {
