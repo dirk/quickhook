@@ -3,6 +3,6 @@ import:
 - package: github.com/urfave/cli
   version: 1efa31f08b9333f1bd4882d61f9d668a70cd902e # v1.18.0
 - package: github.com/jeffail/tunny
-  version: 18dedac4b5873be2596b7a49ff0159e6691f9836
+  version: 0.1.1
 - package: github.com/fatih/color
   version: v1.0.0

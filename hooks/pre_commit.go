@@ -91,35 +91,21 @@ type Result struct {
 }
 
 // Uses a pool sized to the number of CPUs to run all the executables. It's
-// sized to the CPU count so that we fully utilized the hardwire but don't
+// sized to the CPU count so that we fully utilized the hardware but don't
 // context switch in the OS too much.
 func runExecutablesInParallel(executables []*context.Executable, files []string) []*Result {
 	bufferSize := len(executables)
-
-	in := make(chan *context.Executable, bufferSize)
 	out := make(chan *Result, bufferSize)
 
-	pool, err := tunny.CreatePoolGeneric(runtime.NumCPU()).Open()
-	if err != nil {
-		panic(err)
-	}
-
+	pool := tunny.NewFunc(runtime.NumCPU(), func(executable interface{}) interface{} {
+		return runPreCommitExecutable(executable.(*context.Executable), files)
+	})
 	defer pool.Close()
 
-	for _, executable := range executables {
-		in <- executable
-
+	for index := range executables {
+		executable := executables[index]
 		go func() {
-			_, err := pool.SendWork(func() {
-				executable := <-in
-
-				out <- runPreCommitExecutable(executable, files)
-			})
-
-			// Something real bad happened
-			if err != nil {
-				panic(err)
-			}
+			out <- pool.Process(executable).(*Result)
 		}()
 	}
 
