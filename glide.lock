@@ -1,10 +1,10 @@
-hash: c955d5292bc09953440fb8c69fa258118edb0ca272262682d216086fb8dcdcf0
-updated: 2016-09-08T23:48:33.490565716-07:00
+hash: f325e1261961346daec92f823d90e12c47142279dc062cec551e61e2c021e5ea
+updated: 2019-04-22T18:15:24.19885-07:00
 imports:
 - name: github.com/fatih/color
   version: 87d4004f2ab62d0d255e0a38f1680aa534549fe3
 - name: github.com/jeffail/tunny
-  version: 18dedac4b5873be2596b7a49ff0159e6691f9836
+  version: 59cfa8fcb19f5acba8db07a0dd3cb2fa7edbc228
 - name: github.com/mattn/go-colorable
   version: ed8eb9e318d7a84ce5915b495b7d35e0cfe7b5a8
 - name: github.com/mattn/go-isatty
