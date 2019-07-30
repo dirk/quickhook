@@ -3,14 +3,6 @@ go:
   - '1.11.9'
   - '1.12.4'
 
-before_install:
-  # Setup Glide
-  - go get github.com/Masterminds/glide
-
-install:
-  - glide install
-  - go build
-
 before_script:
   # Install Ruby and Bundler
   - sudo apt-get -q install ruby
