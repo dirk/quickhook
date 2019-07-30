@@ -2,16 +2,13 @@ language: go
 go:
   - '1.11.9'
   - '1.12.4'
+  - '1.12.7'
 
-before_install:
-  # Setup Glide
-  - go get github.com/Masterminds/glide
-
-install:
-  - glide install
-  - go build
+env:
+  - GO111MODULE=on
 
 before_script:
+  - go build
   # Install Ruby and Bundler
   - sudo apt-get -q install ruby
   - gem install bundler
