@@ -10,10 +10,10 @@ If you're on Mac there is a [Homebrew tap for Quickhook](https://github.com/dirk
 
 ```sh
 brew tap dirk/quickhook
-# Tapped 1 formula (26 files, 20.4K)
+# Tapped 1 formula (28 files, 28KB).
 
 brew install quickhook
-# /usr/local/Cellar/quickhook/1.2.0: 2 files, 7M, built in 8 seconds
+# /usr/local/Cellar/quickhook/1.4.0: 3 files, 3.7MB, built in 9 seconds
 ```
 
 ## Usage
@@ -28,7 +28,7 @@ Create file .git/hooks/pre-commit? [yn] y
 Installed shim .git/hooks/pre-commit
 ```
 
-The `hook` sub-commands have a some hook-specific options. For example, these are some of the options you can use with the pre-commit hook command:
+To make it easier to test hooks outside of the normal Git paths the `hook` sub-commands provide some additional options. For example, these are some of the options you can use with the pre-commit hook command:
 
 ```sh
 # Run the pre-commit hooks on all Git-tracked files in the repository
@@ -36,6 +36,16 @@ quickhook hook pre-commit --all
 
 # Run them on just one or more files
 quickhook hook pre-commit --files hooks/commit_msg.go hooks/pre_commit.go
+```
+
+You can see all of the options by passing `--help` to the sub-command:
+
+```sh
+$ quickhook hook pre-commit --help
+...
+OPTIONS:
+   --all, -a    Run on all Git-tracked files
+   --files, -F  Run on the given comma-separated list of files
 ```
 
 ## Writing hooks
