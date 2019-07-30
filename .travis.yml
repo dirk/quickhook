@@ -2,6 +2,8 @@ language: go
 go:
   - '1.11.9'
   - '1.12.4'
+env:
+  - GO111MODULE=on
 
 before_script:
   - go build
