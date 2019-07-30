@@ -4,6 +4,7 @@ go:
   - '1.12.4'
 
 before_script:
+  - go build
   # Install Ruby and Bundler
   - sudo apt-get -q install ruby
   - gem install bundler
