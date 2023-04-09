@@ -19,20 +19,15 @@ jobs:
     - name: Prepare coverage
       run: |
         echo "GOCOVERDIR=$(pwd)/coverage" >> $GITHUB_ENV
-        mkdir -p $(pwd)/coverage
+        mkdir -p coverage
     - name: Test
       run: go test -v ./...
     - name: Merge and convert coverage
       run: |
         go tool covdata textfmt \
           -i=$GOCOVERDIR \
-          -o coverage.txt
-        go tool cover \
-          -html=coverage.txt \
-          -o coverage.html
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v3
-      if: ${{ success() || failure() }}
+          -o coverage/coverage.txt
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
       with:
-        name: coverage
-        path: coverage.html
+        directory: ./coverage/
