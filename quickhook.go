@@ -7,7 +7,6 @@ import (
 	"github.com/alecthomas/kong"
 	"github.com/fatih/color"
 
-	"github.com/dirk/quickhook/context"
 	"github.com/dirk/quickhook/hooks"
 	"github.com/dirk/quickhook/repo"
 )
@@ -31,11 +30,6 @@ var cli struct {
 }
 
 func main() {
-	context, err := setupContextInWd()
-	if err != nil {
-		panic(err)
-	}
-
 	parser, err := kong.New(&cli,
 		kong.Vars{
 			"version": VERSION,
@@ -66,9 +60,14 @@ func main() {
 
 	switch parsed.Command() {
 	case "install":
+		repo, err := repo.NewRepo()
+		if err != nil {
+			panic(err)
+		}
+
 		// TODO: Dry run option.
 		prompt := !cli.Install.Yes
-		err := Install(context, prompt)
+		err = install(repo, prompt)
 		if err != nil {
 			panic(err)
 		}
@@ -113,14 +112,4 @@ func main() {
 	default:
 		panic(fmt.Sprintf("Unrecognized command: %v", parsed.Command()))
 	}
-}
-
-// Set up `Context` in current working directory
-func setupContextInWd() (*context.Context, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
-	return context.NewContext(wd)
 }

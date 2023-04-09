@@ -87,7 +87,7 @@ func (repo *Repo) isFile(name string) (bool, error) {
 	return !stat.IsDir(), nil
 }
 
-func (repo *Repo) isDir(name string) (bool, error) {
+func (repo *Repo) IsDir(name string) (bool, error) {
 	stat, err := os.Stat(path.Join(repo.Root, name))
 	if err != nil {
 		if os.IsNotExist(err) {
