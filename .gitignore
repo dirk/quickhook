@@ -1,5 +1,5 @@
-spec/tmp
-vendor
-
-# Executable itself when building locally
+# Executable itself when building locally.
 quickhook
+
+# Code coverage artifacts.
+coverage
