@@ -4,88 +4,33 @@ import (
 	// "fmt"
 	"bytes"
 	"io"
-	"os"
-	"os/exec"
-	"path"
 	"testing"
 
 	"github.com/creack/pty"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/dirk/quickhook/testutils"
 )
 
-type tempDir struct {
-	test      *testing.T
-	root      string
-	quickhook string
-}
-
-func newTempDir(t *testing.T) tempDir {
-	cwd, err := os.Getwd()
-	require.NoError(t, err)
-	return tempDir{
-		test:      t,
-		root:      t.TempDir(),
-		quickhook: path.Join(cwd, "..", "quickhook"),
-	}
-}
-
-func (temp *tempDir) newCommand(name string, arg ...string) *exec.Cmd {
-	cmd := exec.Command(name, arg...)
-	cmd.Dir = temp.root
-	return cmd
-}
-
-func (temp *tempDir) requireExec(name string, arg ...string) {
-	cmd := temp.newCommand(name, arg...)
-	_, err := cmd.Output()
-	require.NoError(temp.test, err, cmd)
-}
-
-func (temp *tempDir) execHook(hook string, arg ...string) (string, error) {
-	cmd := temp.newCommand(
-		temp.quickhook,
-		append([]string{"hook", hook}, arg...)...,
-	)
-	output, err := cmd.CombinedOutput()
-	return string(output), err
-}
-
-func (temp *tempDir) writeFile(relativePath []string, data string) {
-	fullPath := path.Join(append([]string{temp.root}, relativePath...)...)
-	err := os.WriteFile(fullPath, []byte(data), 0755)
-	if err != nil {
-		temp.test.Fatal(err)
-	}
-}
-
-func (temp *tempDir) mkdirAll(relativePath ...string) {
-	fullPath := path.Join(append([]string{temp.root}, relativePath...)...)
-	err := os.MkdirAll(fullPath, 0755)
-	if err != nil {
-		temp.test.Fatal(err)
-	}
-}
-
-func initGit(t *testing.T) tempDir {
-	temp := newTempDir(t)
-	temp.requireExec("git", "init", "--quiet", ".")
-	temp.requireExec("git", "config", "--local", "user.name", "example")
-	temp.requireExec("git", "config", "--local", "user.email", "example@example.com")
-	temp.writeFile([]string{"example.txt"}, "Changed!")
-	temp.requireExec("git", "add", "example.txt")
-	return temp
+func initGit(t *testing.T) testutils.TempDir {
+	tempDir := testutils.NewTempDir(t, 1)
+	tempDir.RequireExec("git", "init", "--quiet", ".")
+	tempDir.RequireExec("git", "config", "--local", "user.name", "example")
+	tempDir.RequireExec("git", "config", "--local", "user.email", "example@example.com")
+	tempDir.WriteFile([]string{"example.txt"}, "Changed!")
+	tempDir.RequireExec("git", "add", "example.txt")
+	return tempDir
 }
 
 func TestFailingHookWithoutPty(t *testing.T) {
-	temp := initGit(t)
-	temp.mkdirAll(".quickhook", "pre-commit")
-	temp.writeFile(
+	tempDir := initGit(t)
+	tempDir.MkdirAll(".quickhook", "pre-commit")
+	tempDir.WriteFile(
 		[]string{".quickhook", "pre-commit", "fails"},
-		"#!/bin/bash \n printf \"first line\\nsecond line\\n\" \n exit 1",
-	)
+		"#!/bin/bash \n printf \"first line\\nsecond line\\n\" \n exit 1")
 
-	output, err := temp.execHook("pre-commit")
+	output, err := tempDir.ExecQuickhook("hook", "pre-commit")
 	assert.Error(t, err)
 	assert.Equal(t, "fails: first line\nfails: second line\n", output)
 }
@@ -110,15 +55,15 @@ var ptyTests = []struct {
 func TestFailingHookWithPty(t *testing.T) {
 	for _, tt := range ptyTests {
 		t.Run(tt.name, func(t *testing.T) {
-			temp := initGit(t)
-			temp.mkdirAll(".quickhook", "pre-commit")
-			temp.writeFile(
+			tempDir := initGit(t)
+			tempDir.MkdirAll(".quickhook", "pre-commit")
+			tempDir.WriteFile(
 				[]string{".quickhook", "pre-commit", "fails"},
 				"#!/bin/bash \n printf \"first line\\nsecond line\\n\" \n exit 1",
 			)
 
-			cmd := temp.newCommand(
-				temp.quickhook,
+			cmd := tempDir.NewCommand(
+				tempDir.Quickhook,
 				append([]string{"hook", "pre-commit"}, tt.arg...)...,
 			)
 			f, err := pty.Start(cmd)
@@ -134,55 +79,52 @@ func TestFailingHookWithPty(t *testing.T) {
 }
 
 func TestPassesWithNoHooks(t *testing.T) {
-	temp := initGit(t)
-	temp.mkdirAll(".quickhook", "pre-commit")
+	tempDir := initGit(t)
+	tempDir.MkdirAll(".quickhook", "pre-commit")
 
-	output, err := temp.execHook("pre-commit")
+	output, err := tempDir.ExecQuickhook("hook", "pre-commit")
 	assert.NoError(t, err)
 	assert.Equal(t, "", output)
 }
 
 func TestPassesWithPassingHooks(t *testing.T) {
-	temp := initGit(t)
-	temp.mkdirAll(".quickhook", "pre-commit")
-	temp.writeFile(
+	tempDir := initGit(t)
+	tempDir.MkdirAll(".quickhook", "pre-commit")
+	tempDir.WriteFile(
 		[]string{".quickhook", "pre-commit", "passes1"},
-		"#!/bin/bash \n echo \"passed\" \n exit 0",
-	)
-	temp.writeFile(
+		"#!/bin/bash \n echo \"passed\" \n exit 0")
+	tempDir.WriteFile(
 		[]string{".quickhook", "pre-commit", "passes2"},
-		"#!/bin/sh \n echo \"passed\"",
-	)
+		"#!/bin/sh \n echo \"passed\"")
 
-	output, err := temp.execHook("pre-commit")
+	output, err := tempDir.ExecQuickhook("hook", "pre-commit")
 	assert.NoError(t, err)
 	assert.Equal(t, "", output)
 }
 
 func TestPassesWithNoFilesToBeCommitted(t *testing.T) {
-	temp := initGit(t)
-	temp.mkdirAll(".quickhook", "pre-commit")
-	temp.writeFile([]string{".quickhook", "pre-commit", "passes"}, "#!/bin/sh \n echo \"passed\"")
-	temp.requireExec("git", "commit", "--message", "Commit example.txt", "--quiet", "--no-verify")
+	tempDir := initGit(t)
+	tempDir.MkdirAll(".quickhook", "pre-commit")
+	tempDir.WriteFile([]string{".quickhook", "pre-commit", "passes"}, "#!/bin/sh \n echo \"passed\"")
+	tempDir.RequireExec("git", "commit", "--message", "Commit example.txt", "--quiet", "--no-verify")
 
-	output, err := temp.execHook("pre-commit")
+	output, err := tempDir.ExecQuickhook("hook", "pre-commit")
 	assert.NoError(t, err)
 	assert.Equal(t, "", output)
 }
 
 func TestHandlesDeletedFiles(t *testing.T) {
-	temp := initGit(t)
-	temp.mkdirAll(".quickhook", "pre-commit")
-	temp.writeFile([]string{".quickhook", "pre-commit", "passes"}, "#!/bin/sh \n echo \"passed\"")
-	temp.requireExec("git", "commit", "--message", "Commit example.txt", "--quiet", "--no-verify")
-	temp.requireExec("git", "rm", "example.txt", "--quiet")
-	temp.writeFile(
+	tempDir := initGit(t)
+	tempDir.MkdirAll(".quickhook", "pre-commit")
+	tempDir.WriteFile([]string{".quickhook", "pre-commit", "passes"}, "#!/bin/sh \n echo \"passed\"")
+	tempDir.RequireExec("git", "commit", "--message", "Commit example.txt", "--quiet", "--no-verify")
+	tempDir.RequireExec("git", "rm", "example.txt", "--quiet")
+	tempDir.WriteFile(
 		[]string{"other-example.txt"},
-		"Also changed!",
-	)
-	temp.requireExec("git", "add", "other-example.txt")
+		"Also changed!")
+	tempDir.RequireExec("git", "add", "other-example.txt")
 
-	output, err := temp.execHook("pre-commit")
+	output, err := tempDir.ExecQuickhook("hook", "pre-commit")
 	assert.NoError(t, err)
 	assert.Equal(t, "", output)
 }

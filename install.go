@@ -87,7 +87,7 @@ func promptForInstallShim(repo *repo.Repo, shimPath, hook string) (bool, error) 
 
 	scanner := bufio.NewScanner(os.Stdin)
 
-	for true {
+	for {
 		fmt.Printf("%v [yn] ", message)
 
 		if !scanner.Scan() {
@@ -109,8 +109,6 @@ func promptForInstallShim(repo *repo.Repo, shimPath, hook string) (bool, error) 
 			continue
 		}
 	}
-
-	return false, fmt.Errorf("unreachable")
 }
 
 func installShim(repo *repo.Repo, shimPath, hook string, prompt bool) error {
