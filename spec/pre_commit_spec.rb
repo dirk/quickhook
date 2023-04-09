@@ -86,18 +86,18 @@ describe 'pre-commit' do
   end
 
   it "fails if any of the hooks failed" do
-    write_file "#{hook_dir}/fails", "#!/bin/bash \n echo \"failed\" \n exit 1"
+    write_file "#{hook_dir}/fails", "#!/bin/bash \n printf \"first line\\nsecond line\\n\" \n exit 1"
     system "chmod +x #{hook_dir}/*"
 
     result = run_hook(pty: false)
     expect(result.status).not_to eq 0
-    expect(result.lines).to eq(['fails: fail', 'failed'])
+    expect(result.lines).to eq(['fails: first line', 'fails: second line'])
 
     result = run_hook(pty: true, options: '--no-color')
-    expect(result.lines).to eq(["fails: fail", "failed"])
+    expect(result.lines).to eq(['fails: first line', 'fails: second line'])
 
     result = run_hook(pty: true)
-    expect(result.lines).to eq(["fails: \e[31mfail\e[0m", "\e[31mfailed", "\e[0m"])
+    expect(result.lines).to eq(["\e[31mfails\e[0m: first line", "\e[31mfails\e[0m: second line"])
   end
 
   it "passes if all hooks pass" do
@@ -107,13 +107,13 @@ describe 'pre-commit' do
 
     result = run_hook(pty: false)
     expect(result.status).to eq 0
-    expect(result.lines.sort).to eq(["passes1: ok", "passes2: ok"])
+    expect(result.lines.sort).to be_empty
 
     result = run_hook(pty: true, options: '--no-color')
-    expect(result.lines.sort).to eq(["passes1: ok", "passes2: ok"])
+    expect(result.lines.sort).to be_empty
 
     result = run_hook(pty: true)
-    expect(result.lines.sort).to eq(["passes1: \e[32mok\e[0m", "passes2: \e[32mok\e[0m"])
+    expect(result.lines.sort).to be_empty
   end
 
   it 'handles deleted files' do

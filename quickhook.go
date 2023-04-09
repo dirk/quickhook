@@ -4,13 +4,31 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/urfave/cli"
+	"github.com/alecthomas/kong"
+	"github.com/fatih/color"
 
 	"github.com/dirk/quickhook/context"
 	"github.com/dirk/quickhook/hooks"
+	"github.com/dirk/quickhook/repo"
 )
 
-const VERSION = "1.4.0"
+const VERSION = "2.0.0"
+
+var cli struct {
+	Install struct {
+		Yes bool `short:"y" help:"Assume yes for all prompts"`
+	} `cmd:"" help:"Install Quickhook shims into .git/hooks"`
+	Hook struct {
+		PreCommit struct {
+			Files []string `help:"For testing, supply list of files as changed files"`
+		} `cmd:"" help:"Run pre-commit hooks"`
+		CommitMsg struct {
+			MessageFile string `arg:"" help:"Temp file containing the commit message"`
+		} `cmd:"" help:"Run commit-msg hooks"`
+	} `cmd:""`
+	Version kong.VersionFlag `help:"Show version information"`
+	NoColor bool             `env:"NO_COLOR" help:"Don't colorize output"`
+}
 
 func main() {
 	context, err := setupContextInWd()
@@ -18,87 +36,83 @@ func main() {
 		panic(err)
 	}
 
-	app := cli.NewApp()
-	app.Name = "quickhook"
-	app.Version = VERSION
-	app.Usage = "Git hook runner"
-
-	app.Commands = []cli.Command{
-		{
-			Name:  "hook",
-			Usage: "Run a hook",
-			Action: func(c *cli.Context) error {
-				return cli.ShowSubcommandHelp(c)
-			},
-			Subcommands: []cli.Command{
-				cli.Command{
-					Name: "pre-commit",
-					Flags: []cli.Flag{
-						allFlag(),
-						filesFlag(),
-						noColorFlag(),
-					},
-					Action: func(c *cli.Context) error {
-						files := []string{}
-						if c.Bool("files") {
-							files = c.Args()
-						}
-
-						err := hooks.PreCommit(context, &hooks.PreCommitOpts{
-							All:     c.Bool("all"),
-							Files:   files,
-							NoColor: c.Bool("no-color"),
-						})
-						if err != nil {
-							panic(err)
-						}
-						return nil
-					},
-				},
-				cli.Command{
-					Name: "commit-msg",
-					Flags: []cli.Flag{
-						noColorFlag(),
-					},
-					Action: func(c *cli.Context) error {
-						messageTempFile := c.Args().Get(0)
-						if messageTempFile == "" {
-							fmt.Println("Missing message temp file argument")
-							os.Exit(1)
-						}
-
-						err := hooks.CommitMsg(context, &hooks.CommitMsgOpts{
-							NoColor:         c.Bool("no-color"),
-							MessageTempFile: messageTempFile,
-						})
-						if err != nil {
-							panic(err)
-						}
-						return nil
-					},
-				},
-			},
-		},
-		{
-			Name:      "install",
-			Usage:     "Install Quickhook shims into .git/hooks",
-			ArgsUsage: " ", // Don't show "[arguments...]"
-			Flags: []cli.Flag{
-				yesFlag(),
-			},
-			Action: func(c *cli.Context) error {
-				prompt := c.Bool("yes") != true
-
-				err := Install(context, prompt)
-				if err != nil {
-					panic(err)
-				}
-				return nil
-			},
-		},
+	parser, err := kong.New(&cli,
+		kong.Vars{
+			"version": VERSION,
+		})
+	if err != nil {
+		panic(err)
 	}
 
-	app.Run(os.Args)
+	args := os.Args[1:]
+	// Print the help if there are no args.
+	if len(args) == 0 {
+		parsed := kong.Context{
+			Kong: parser,
+		}
+		parsed.PrintUsage(false)
+		parsed.Exit(1)
+	}
+
+	parsed, err := parser.Parse(args)
+	parser.FatalIfErrorf(err)
+
+	opts := hooks.Opts{
+		NoColor: cli.NoColor,
+	}
+	if opts.NoColor {
+		color.NoColor = true
+	}
+
+	switch parsed.Command() {
+	case "install":
+		// TODO: Dry run option.
+		prompt := !cli.Install.Yes
+		err := Install(context, prompt)
+		if err != nil {
+			panic(err)
+		}
+
+	case "hook commit-msg <message-file>":
+		repo, err := repo.NewRepo()
+		if err != nil {
+			panic(err)
+		}
+
+		hook := hooks.CommitMsg{
+			Repo: repo,
+		}
+		err = hook.Run(cli.Hook.CommitMsg.MessageFile)
+		if err != nil {
+			panic(err)
+		}
+
+	case "hook pre-commit":
+		repo, err := repo.NewRepo()
+		if err != nil {
+			panic(err)
+		}
+
+		files := cli.Hook.PreCommit.Files
+		if len(files) == 0 {
+			files, err = repo.FilesToBeCommitted()
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		hook := hooks.PreCommit{
+			Repo: repo,
+			Opts: opts,
+		}
+		err = hook.Run(files)
+		if err != nil {
+			panic(err)
+		}
+
+	default:
+		panic(fmt.Sprintf("Unrecognized command: %v", parsed.Command()))
+	}
 }
 
 // Set up `Context` in current working directory
@@ -109,33 +123,4 @@ func setupContextInWd() (*context.Context, error) {
 	}
 
 	return context.NewContext(wd)
-}
-
-func noColorFlag() cli.Flag {
-	return cli.BoolFlag{
-		Name:   "no-color",
-		EnvVar: "NO_COLOR,QUICKHOOK_NO_COLOR",
-		Usage:  "Don't colorize output",
-	}
-}
-
-func allFlag() cli.Flag {
-	return cli.BoolFlag{
-		Name:  "all, a",
-		Usage: "Run on all Git-tracked files",
-	}
-}
-
-func filesFlag() cli.Flag {
-	return cli.BoolFlag{
-		Name:  "files, F",
-		Usage: "Run on the given comma-separated list of files",
-	}
-}
-
-func yesFlag() cli.Flag {
-	return cli.BoolFlag{
-		Name:  "yes, y",
-		Usage: "Assume yes for all prompts",
-	}
 }
