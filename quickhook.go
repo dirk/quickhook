@@ -11,7 +11,7 @@ import (
 	"github.com/dirk/quickhook/repo"
 )
 
-const VERSION = "2.0.0"
+const VERSION = "2.0.0-pre"
 
 var cli struct {
 	Install struct {
