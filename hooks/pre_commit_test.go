@@ -79,7 +79,7 @@ func initGit(t *testing.T) tempDir {
 	return temp
 }
 
-func TestFailsWithoutPty(t *testing.T) {
+func TestFailingHookWithoutPty(t *testing.T) {
 	temp := initGit(t)
 	temp.mkdirAll(".quickhook", "pre-commit")
 	temp.writeFile(
@@ -109,7 +109,7 @@ var ptyTests = []struct {
 	},
 }
 
-func TestFailsWithPty(t *testing.T) {
+func TestFailingHookWithPty(t *testing.T) {
 	for _, tt := range ptyTests {
 		t.Run(tt.name, func(t *testing.T) {
 			temp := initGit(t)
@@ -155,6 +155,34 @@ func TestPassesWithPassingHooks(t *testing.T) {
 		[]string{".quickhook", "pre-commit", "passes2"},
 		"#!/bin/sh \n echo \"passed\"",
 	)
+
+	output, err := temp.execHook("pre-commit")
+	assert.NoError(t, err)
+	assert.Equal(t, "", output)
+}
+
+func TestPassesWithNoFilesToBeCommitted(t *testing.T) {
+	temp := initGit(t)
+	temp.mkdirAll(".quickhook", "pre-commit")
+	temp.writeFile([]string{".quickhook", "pre-commit", "passes"}, "#!/bin/sh \n echo \"passed\"")
+	temp.requireExec("git", "commit", "--message", "Commit example.txt", "--quiet", "--no-verify")
+
+	output, err := temp.execHook("pre-commit")
+	assert.NoError(t, err)
+	assert.Equal(t, "", output)
+}
+
+func TestHandlesDeletedFiles(t *testing.T) {
+	temp := initGit(t)
+	temp.mkdirAll(".quickhook", "pre-commit")
+	temp.writeFile([]string{".quickhook", "pre-commit", "passes"}, "#!/bin/sh \n echo \"passed\"")
+	temp.requireExec("git", "commit", "--message", "Commit example.txt", "--quiet", "--no-verify")
+	temp.requireExec("git", "rm", "example.txt", "--quiet")
+	temp.writeFile(
+		[]string{"other-example.txt"},
+		"Also changed!",
+	)
+	temp.requireExec("git", "add", "other-example.txt")
 
 	output, err := temp.execHook("pre-commit")
 	assert.NoError(t, err)
