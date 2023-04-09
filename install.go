@@ -3,23 +3,24 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 
-	"github.com/dirk/quickhook/context"
+	"github.com/dirk/quickhook/repo"
 )
 
-func Install(c *context.Context, prompt bool) error {
-	hooks, err := c.ListHooks()
+func install(repo *repo.Repo, prompt bool) error {
+	hooks, err := listHooks(repo)
 	if err != nil {
 		return err
 	}
 
 	for _, hook := range hooks {
-		shimPath := context.PathForShim(hook)
-
+		shimPath := path.Join(".git", "hooks", hook)
 		if prompt {
-			shouldInstall, err := promptForInstallShim(hook, shimPath)
+			shouldInstall, err := promptForInstallShim(repo, shimPath, hook)
 			if err != nil {
 				return err
 			}
@@ -30,7 +31,7 @@ func Install(c *context.Context, prompt bool) error {
 			}
 		}
 
-		c.InstallShim(hook, prompt)
+		installShim(repo, shimPath, hook, prompt)
 
 		fmt.Printf("Installed shim %v\n", shimPath)
 	}
@@ -38,8 +39,41 @@ func Install(c *context.Context, prompt bool) error {
 	return nil
 }
 
-func promptForInstallShim(hook string, shimPath string) (bool, error) {
-	exists, err := context.IsDir(shimPath)
+func listHooks(repo *repo.Repo) ([]string, error) {
+	hooksPath := path.Join(repo.Root, ".quickhook")
+
+	entries, err := ioutil.ReadDir(hooksPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "Missing hooks directory: %v\n", hooksPath)
+			os.Exit(66) // EX_NOINPUT
+		} else {
+			return nil, err
+		}
+	}
+
+	var hooks []string
+	for _, entry := range entries {
+		if entry.IsDir() && isHook(entry.Name()) {
+			hooks = append(hooks, entry.Name())
+		}
+	}
+
+	return hooks, nil
+}
+
+func isHook(name string) bool {
+	switch name {
+	case
+		"pre-commit",
+		"commit-msg":
+		return true
+	}
+	return false
+}
+
+func promptForInstallShim(repo *repo.Repo, shimPath, hook string) (bool, error) {
+	exists, err := repo.IsDir(shimPath)
 	if err != nil {
 		return false, err
 	}
@@ -77,4 +111,47 @@ func promptForInstallShim(hook string, shimPath string) (bool, error) {
 	}
 
 	return false, fmt.Errorf("unreachable")
+}
+
+func installShim(repo *repo.Repo, shimPath, hook string, prompt bool) error {
+	command, err := shimCommandForHook(hook)
+	if err != nil {
+		return err
+	}
+
+	lines := []string{
+		"#!/bin/sh",
+		command,
+		"", // So we get a trailing newline when we join
+	}
+
+	file, err := os.Create(shimPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	err = os.Chmod(shimPath, 0755)
+	if err != nil {
+		return err
+	}
+
+	file.WriteString(strings.Join(lines, "\n"))
+
+	return nil
+}
+
+func shimCommandForHook(hook string) (string, error) {
+	var args string
+
+	switch hook {
+	case "pre-commit":
+		args = "pre-commit"
+	case "commit-msg":
+		args = "commit-msg $1"
+	default:
+		return "", fmt.Errorf("invalid hook: %v", hook)
+	}
+
+	return fmt.Sprintf("quickhook hook %v", args), nil
 }

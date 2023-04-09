@@ -3,14 +3,11 @@ package hooks
 import (
 	"fmt"
 	"os"
-	"os/exec"
-	"runtime"
 	"strings"
 
-	"github.com/fatih/color"
-	"github.com/jeffail/tunny"
+	lop "github.com/samber/lo/parallel"
 
-	"github.com/dirk/quickhook/context"
+	"github.com/dirk/quickhook/repo"
 )
 
 const PRE_COMMIT_HOOK = "pre-commit"
@@ -18,114 +15,51 @@ const PRE_COMMIT_HOOK = "pre-commit"
 const FAILED_EXIT_CODE = 65         // EX_DATAERR - hooks didn't pass
 const NOTHING_STAGED_EXIT_CODE = 66 // EX_NOINPUT
 
-type PreCommitOpts struct {
+type Opts struct {
 	NoColor bool
-	Files   []string
-	All     bool
 }
 
-func (opts *PreCommitOpts) ListFiles(c *context.Context) ([]string, error) {
-	if len(opts.Files) > 0 {
-		for _, file := range opts.Files {
-			isFile, err := context.IsFile(file)
-			if err != nil {
-				return nil, err
-			}
-
-			if !isFile {
-				color.Yellow(fmt.Sprintf("File not found: %v", file))
-				os.Exit(NOTHING_STAGED_EXIT_CODE)
-			}
-		}
-
-		return opts.Files, nil
-	} else if opts.All {
-		return c.AllFiles()
-	} else {
-		return c.FilesToBeCommitted()
-	}
+type PreCommit struct {
+	Repo *repo.Repo
+	Opts
 }
 
-func PreCommit(c *context.Context, opts *PreCommitOpts) error {
-	if opts.NoColor {
-		color.NoColor = true
-	}
-
-	files, err := opts.ListFiles(c)
+func (hook *PreCommit) Run(files []string) error {
+	dirForPath, err := hook.Repo.ShimGit()
 	if err != nil {
 		return err
 	}
+	defer os.RemoveAll(dirForPath)
 
-	executables, err := c.ExecutablesForHook(PRE_COMMIT_HOOK)
+	executables, err := hook.Repo.FindHookExecutables(PRE_COMMIT_HOOK)
 	if err != nil {
 		return err
 	}
+	// fmt.Printf("%#v\n", executables)
 
-	results := runExecutablesInParallel(executables, files)
-	hasErrors := false
+	stdin := strings.Join(files, "\n")
+	// Run hook executables in parallel.
+	results := lop.Map(executables, func(executable string, _ int) hookResult {
+		// Insert the git shim's directory into the PATH to prevent usage of git.
+		env := append(os.Environ(), fmt.Sprintf("PATH=%s:%s", dirForPath, os.Getenv("PATH")))
+		return runExecutable(hook.Repo.Root, executable, env, stdin)
+	})
 
+	// fmt.Printf("%#v\n", results)
+	errored := false
 	for _, result := range results {
-		fmt.Printf("%v: %v\n", result.executable.Name, errToStringStatus(result.commandError))
-
-		if result.commandError != nil {
-			hasErrors = true
-
-			output := strings.TrimSpace(result.combinedOutput)
-			if output != "" {
-				color.Red(output)
-			}
+		if result.err == nil {
+			// Print any stderr even if the hook executable succeeded.
+			result.printStderr()
+			continue
 		}
+		// Maybe print a header?
+		errored = true
+		result.printStderr()
+		result.printStdout()
 	}
-
-	if hasErrors {
+	if errored {
 		os.Exit(FAILED_EXIT_CODE)
 	}
-
 	return nil
-}
-
-type Result struct {
-	executable     *context.Executable
-	commandError   error
-	combinedOutput string
-}
-
-// Uses a pool sized to the number of CPUs to run all the executables. It's
-// sized to the CPU count so that we fully utilized the hardware but don't
-// context switch in the OS too much.
-func runExecutablesInParallel(executables []*context.Executable, files []string) []*Result {
-	bufferSize := len(executables)
-	out := make(chan *Result, bufferSize)
-
-	pool := tunny.NewFunc(runtime.NumCPU(), func(executable interface{}) interface{} {
-		return runPreCommitExecutable(executable.(*context.Executable), files)
-	})
-	defer pool.Close()
-
-	for index := range executables {
-		executable := executables[index]
-		go func() {
-			out <- pool.Process(executable).(*Result)
-		}()
-	}
-
-	var results []*Result
-	for i := 0; i < bufferSize; i++ {
-		results = append(results, <-out)
-	}
-
-	return results
-}
-
-func runPreCommitExecutable(executable *context.Executable, files []string) *Result {
-	cmd := exec.Command(executable.AbsolutePath)
-	cmd.Stdin = strings.NewReader(strings.Join(files, "\n"))
-
-	combinedOutputBytes, exitError := cmd.CombinedOutput()
-
-	return &Result{
-		executable:     executable,
-		commandError:   exitError,
-		combinedOutput: string(combinedOutputBytes),
-	}
 }

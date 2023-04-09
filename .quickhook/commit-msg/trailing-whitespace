@@ -2,7 +2,8 @@
 
 grep '[[:blank:]]$' $1 > /dev/null
 
-# Exit with an error if it matched lines with trailing space
+# Exit with an error if it matched lines with trailing space.
 if [ $? -eq 0 ]; then
+  echo "Commit message has trailing whitespace."
   exit 1
 fi
