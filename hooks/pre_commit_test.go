@@ -22,9 +22,7 @@ type tempDir struct {
 
 func newTempDir(t *testing.T) tempDir {
 	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	return tempDir{
 		test:      t,
 		root:      t.TempDir(),
