@@ -25,3 +25,12 @@ func TestInstallPreCommitYes(t *testing.T) {
 	assert.FileExists(t,
 		path.Join(tempDir.Root, shimPath))
 }
+
+func TestInstallNoQuickhookDirectory(t *testing.T) {
+	tempDir := testutils.NewTempDir(t, 0)
+	tempDir.RequireExec("git", "init", "--quiet", ".")
+
+	output, err := tempDir.ExecQuickhook("install", "--yes")
+	assert.Error(t, err)
+	assert.Contains(t, output, "Missing hooks directory")
+}
