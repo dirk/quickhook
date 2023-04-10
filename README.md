@@ -59,6 +59,12 @@ Pre-commit hooks receive the list of staged files separated by newlines on stdin
 
 **Note**: Pre-commit hooks will be executed in parallel and should not mutate the local repository state. For this reason `git` is shimmed on the hooks' $PATH to be unavailable.
 
+#### Mutating hooks
+
+You can also add executables to `.quickhook/pre-commit-mutating/`. These will be run _sequentially_, without Git shimmed, and may mutate the local repository state.
+
+#### Suggested formatting
+
 If you're unsure how to format your lines, there's an informal Unix convention which is already followed by many programming languages, linters, and so forth.
 
 ```
@@ -107,6 +113,8 @@ $ go build
 # Run all tests:
 $ go test ./...
 ```
+
+**Warning**: Many of the tests are integration-style tests which depend on a locally-built Quickhook executable. If you see unexpected test failures, please first try running `go build` before you rerun tests.
 
 There's also a script that will generate and open an HTML page with coverage:
 

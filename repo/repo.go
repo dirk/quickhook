@@ -32,8 +32,7 @@ func (repo *Repo) FindHookExecutables(hook string) ([]string, error) {
 	files, err := ioutil.ReadDir(path.Join(repo.Root, dir))
 	if err != nil {
 		if os.IsNotExist(err) {
-			fmt.Fprintf(os.Stderr, "Missing hook directory: %v\n", dir)
-			os.Exit(66) // EX_NOINPUT
+			return []string{}, nil
 		} else {
 			return nil, err
 		}
