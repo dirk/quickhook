@@ -44,6 +44,16 @@ $ brew install quickhook
 
 Installable debs and RPMs are available for the [latest release](https://github.com/dirk/quickhook/releases/latest).
 
+```sh
+# Installing a .deb
+wget https://github.com/dirk/quickhook/releases/download/v1.5.0/quickhook-1.5.0-amd64.deb
+sudo apt install ./quickhook-1.5.0-amd64.deb
+
+# Installing a .rpm
+wget https://github.com/dirk/quickhook/releases/download/v1.5.0/quickhook-1.5.0-amd64.rpm
+sudo rpm --install quickhook-1.5.0-amd64.rpm
+```
+
 ## Usage
 
 First you'll need to install Quickhook in your repository: `quickhook install` command will discover hooks defined in the `.quickhook` directory and create Git hook shims for those. For example, the below is what you can expect from running installation in this repository:
@@ -78,11 +88,11 @@ OPTIONS:
 
 ## Writing hooks
 
-Quickhook will look for hooks in a corresponding sub-directory of the `.quickhook` directory in your repository. For example, it will look for pre-commit hooks in `.quickhook/pre-commit/`. A hook is any executable file in that directory. See the [`go-vet`](.quickhook/pre-commit/go-vet) file for an example.
+Quickhook will look for hooks in a corresponding sub-directory of the `.quickhook` directory in your repository. For example, it will look for pre-commit hooks in `.quickhook/pre-commit/`. A hook is any executable file in that directory.
 
 ### pre-commit
 
-Pre-commit hooks receive the list of staged files separated by newlines on stdin. They are expected to write their result to stdout/stderr (Quickhook doesn't care). If they exit with a non-zero exit code then the commit will be aborted and their output displayed to the user.
+Pre-commit hooks receive the list of staged files separated by newlines on stdin. They are expected to write their result to stdout/stderr (Quickhook doesn't care). If they exit with a non-zero exit code then the commit will be aborted and their output displayed to the user. See the [`go-vet`](.quickhook/pre-commit/go-vet) file for an example.
 
 **Note**: Pre-commit hooks will be executed in parallel and should not mutate the local repository state. For this reason `git` is shimmed on the hooks' $PATH to be unavailable.
 
