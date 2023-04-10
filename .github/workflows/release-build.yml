@@ -1,0 +1,51 @@
+name: build
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "Tag to checkout and build"
+        type: string
+        required: true
+    outputs:
+      version:
+        description: "Version without the leading 'v', eg. '1.5.0'"
+        value: ${{ jobs.build.outputs.version }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    strategy:
+      matrix:
+        os: [linux]
+        arch: [amd64, arm64]
+    steps:
+      - id: version
+        run: echo '${{ inputs.tag }}' | sed -e 's/^v/version=/' >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v3
+        with:
+          ref: '${{ inputs.tag }}'
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.20'
+      - uses: ruby/setup-ruby@v1.146.0
+        with:
+          ruby-version: '3.1'
+      - run: gem install fpm
+      - run: |
+          mkdir -p build/usr/bin
+          GOARCH=${{ matrix.arch }} GOOS=${{ matrix.os }} go build -o build/usr/bin/quickhook
+          fpm \
+            --input-type dir \
+            --output-type deb \
+            --package quickhook-${{ steps.version.outputs.version }}-${{ matrix.arch }}.deb \
+            --name quickhook \
+            --license bsd-3-clause \
+            --version ${{ steps.version.outputs.version }} \
+            --architecture ${{ matrix.arch }} \
+            build
+      - uses: actions/upload-artifact@v3
+        with:
+          path: '*.deb'
