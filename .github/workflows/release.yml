@@ -13,9 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [darwin, linux]
+        os: [linux]
         arch: [amd64, arm64]
     steps:
+    - run: |
+        echo '${{ inputs.tag }}' | sed -e 's/^v/RELEASE_VERSION=/' >> $GITHUB_ENV
     - uses: actions/checkout@v3
       with:
         ref: '${{ inputs.tag }}'
@@ -26,4 +28,15 @@ jobs:
       with:
         ruby-version: '3.1'
     - run: gem install fpm
-    - run: GOARCH=${{ matrix.arch }} GOOS=${{ matrix.os }} go build
+    - run: |
+        mkdir -p build/usr/bin
+        GOARCH=${{ matrix.arch }} GOOS=${{ matrix.os }} go build -o build/usr/bin/quickhook
+        fpm \
+          --input-type dir \
+          --output-type deb \
+          --package quickhook-${RELEASE_VERSION}-${{ matrix.arch }}.deb \
+          --name quickhook \
+          --license bsd-3-clause \
+          --version $RELEASE_VERSION \
+          --architecture ${{ matrix.arch }} \
+          build
