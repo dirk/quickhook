@@ -2,7 +2,7 @@ package repo
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path"
@@ -29,23 +29,32 @@ func NewRepo() (*Repo, error) {
 func (repo *Repo) FindHookExecutables(hook string) ([]string, error) {
 	dir := path.Join(".quickhook", hook)
 
-	files, err := ioutil.ReadDir(path.Join(repo.Root, dir))
-	if err != nil {
-		if os.IsNotExist(err) {
-			return []string{}, nil
-		} else {
+	var infos []fs.FileInfo
+	{
+		f, err := os.Open(path.Join(repo.Root, dir))
+		if err != nil {
+			if os.IsNotExist(err) {
+				return []string{}, nil
+			}
+			return nil, err
+		}
+		defer f.Close()
+
+		// Using Readdir since it returns FileInfo's that include permissions, whereas ReadDir
+		// returns returns DirEntry's which does not.
+		infos, err = f.Readdir(-1)
+		if err != nil {
 			return nil, err
 		}
 	}
 
 	hooks := []string{}
-	for _, fileInfo := range files {
-		if fileInfo.IsDir() {
+	for _, info := range infos {
+		if info.IsDir() {
 			continue
 		}
-
-		name := fileInfo.Name()
-		if (fileInfo.Mode() & 0111) > 0 {
+		name := info.Name()
+		if (info.Mode() & 0111) != 0 {
 			hooks = append(hooks, path.Join(dir, name))
 		} else {
 			fmt.Fprintf(os.Stderr, "Warning: Non-executable file found in %v: %v\n", dir, name)
@@ -84,15 +93,4 @@ func (repo *Repo) isFile(name string) (bool, error) {
 		return false, err
 	}
 	return !stat.IsDir(), nil
-}
-
-func (repo *Repo) IsDir(name string) (bool, error) {
-	stat, err := os.Stat(path.Join(repo.Root, name))
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false, nil
-		}
-		return false, err
-	}
-	return stat.IsDir(), nil
 }
