@@ -7,6 +7,24 @@ Quickhook is a Git hook runner designed for speed. It is opinionated where it ma
 
 ## Installation
 
+### `go install`
+
+If you have your $PATH set up for Go then it's as simple as:
+
+```sh
+$ go install github.com/dirk/quickhook
+$ quickhook --version
+1.5.0
+```
+
+To uninstall use `clean -i`:
+
+```sh
+$ go clean -i github.com/dirk/quickhook
+```
+
+### Homebrew
+
 If you're on Mac there is a [Homebrew tap for Quickhook](https://github.com/dirk/homebrew-quickhook):
 
 ```sh
