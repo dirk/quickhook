@@ -10,11 +10,16 @@ Quickhook is a Git hook runner designed for speed. It is opinionated where it ma
 If you're on Mac there is a [Homebrew tap for Quickhook](https://github.com/dirk/homebrew-quickhook):
 
 ```sh
-brew tap dirk/quickhook
-# Tapped 1 formula (28 files, 28KB).
+$ brew tap dirk/quickhook
+==> Tapping dirk/quickhook
+...
+Tapped 1 formula (14 files, 12.6KB).
 
-brew install quickhook
-# /usr/local/Cellar/quickhook/1.4.0: 3 files, 3.7MB, built in 9 seconds
+$ brew install quickhook
+==> Fetching dirk/quickhook/quickhook
+==> Downloading https://github.com/dirk/quickhook/archive/v1.5.0.tar.gz
+...
+/opt/homebrew/Cellar/quickhook/1.5.0: 5 files, 3.1MB, built in 2 seconds
 ```
 
 ## Usage
@@ -33,10 +38,10 @@ Quickhook provides some options to run various hooks directly for development an
 
 ```sh
 # Run the pre-commit hooks on all Git-tracked files in the repository
-quickhook hook pre-commit --all
+$ quickhook hook pre-commit --all
 
 # Run them on just one or more files
-quickhook hook pre-commit --files=hooks/commit_msg.go,hooks/pre_commit.go
+$ quickhook hook pre-commit --files=hooks/commit_msg.go,hooks/pre_commit.go
 ```
 
 You can see all of the options by passing `--help` to the sub-command:
