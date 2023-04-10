@@ -14,20 +14,24 @@ jobs:
     - uses: actions/setup-go@v3
       with:
         go-version: '1.20'
-    - name: Build
-      run: go build -cover -v
-    - name: Prepare coverage
+    - name: Build and test with integration coverage
       run: |
-        echo "GOCOVERDIR=$(pwd)/coverage" >> $GITHUB_ENV
-        mkdir -p coverage
-    - name: Test
-      run: go test -v ./...
-    - name: Merge and convert coverage
+        go build -cover -v
+        mkdir -p coverage/integration
+        GOCOVERDIR=$(pwd)/coverage/integration go test ./... -v -count=1
+    - name: Rebuild and test with unit coverage
       run: |
-        go tool covdata textfmt \
-          -i=$GOCOVERDIR \
-          -o coverage/coverage.txt
+        go build -v
+        go test ./... -count=1 -coverprofile=coverage/unit-coverage.txt
+    - name: Process coverage
+      # Coverage is simple text files, so we can combine the integration
+      # and unit test coverage by simply appending the latter with the
+      # first line skipped.
+      run: |
+        go tool covdata textfmt -i=coverage/integration -o coverage/integration-coverage.txt
+        cp coverage/integration-coverage.txt coverage/coverage.txt
+        tail -n +2 coverage/unit-coverage.txt >> coverage/coverage.txt
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
       with:
-        directory: ./coverage/
+        files: ./coverage/coverage.txt
