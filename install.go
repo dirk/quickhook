@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -22,7 +23,7 @@ func install(repo *repo.Repo, quickhook string, prompt bool) error {
 	for _, hook := range hooks {
 		shimPath := path.Join(".git", "hooks", hook)
 		if prompt {
-			shouldInstall, err := promptForInstallShim(repo, shimPath, hook)
+			shouldInstall, err := promptForInstallShim(os.Stdin, repo, shimPath)
 			if err != nil {
 				return err
 			}
@@ -70,7 +71,7 @@ func listHooks(repo *repo.Repo) ([]string, error) {
 	return lo.Uniq(hooks), nil
 }
 
-func promptForInstallShim(repo *repo.Repo, shimPath, hook string) (bool, error) {
+func promptForInstallShim(stdin io.Reader, repo *repo.Repo, shimPath string) (bool, error) {
 	exists, err := repo.IsDir(shimPath)
 	if err != nil {
 		return false, err
@@ -83,17 +84,14 @@ func promptForInstallShim(repo *repo.Repo, shimPath, hook string) (bool, error) 
 		message = fmt.Sprintf("Create file %v?", shimPath)
 	}
 
-	scanner := bufio.NewScanner(os.Stdin)
-
+	scanner := bufio.NewScanner(stdin)
 	for {
 		fmt.Printf("%v [yn] ", message)
 
 		if !scanner.Scan() {
 			return false, scanner.Err()
 		}
-
 		reply := strings.ToLower(scanner.Text())
-
 		if len(reply) == 0 {
 			continue
 		}

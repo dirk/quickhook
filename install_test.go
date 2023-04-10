@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/dirk/quickhook/repo"
 	"github.com/dirk/quickhook/testutils"
 )
 
@@ -48,4 +49,49 @@ func TestInstallNoQuickhookDirectory(t *testing.T) {
 	output, err := tempDir.ExecQuickhook("install", "--yes")
 	assert.Error(t, err)
 	assert.Contains(t, output, "Missing hooks directory")
+}
+
+func TestPromptForInstall(t *testing.T) {
+	ptyTests := []struct {
+		name     string
+		stdin    string
+		expected bool
+	}{
+		{
+			"yes",
+			"yes\n",
+			true,
+		},
+		{
+			"short yes",
+			"y\n",
+			true,
+		},
+		{
+			"no",
+			"no\n",
+			false,
+		},
+		{
+			"short no",
+			"n\n",
+			false,
+		},
+		{
+			"no input",
+			"",
+			false,
+		},
+	}
+	for _, tt := range ptyTests {
+		t.Run(tt.name, func(t *testing.T) {
+			tempDir := testutils.NewTempDir(t, 0)
+			repo := &repo.Repo{Root: tempDir.Root}
+
+			stdin := strings.NewReader(tt.stdin)
+			shouldInstall, err := promptForInstallShim(stdin, repo, ".git/hooks/pre-commit")
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, shouldInstall)
+		})
+	}
 }
