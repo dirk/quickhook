@@ -11,12 +11,19 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [darwin, linux]
+        arch: [amd64, arm64]
     steps:
     - uses: actions/checkout@v3
       with:
         ref: '${{ inputs.tag }}'
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1.146.0
+    - uses: actions/setup-go@v3
+      with:
+        go-version: '1.20'
+    - uses: ruby/setup-ruby@v1.146.0
       with:
         ruby-version: '3.1'
     - run: gem install fpm
+    - run: GOARCH=${{ matrix.arch }} GOOS=${{ matrix.os }} go build
