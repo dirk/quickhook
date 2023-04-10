@@ -22,7 +22,7 @@ jobs:
     - name: Rebuild and test with unit coverage
       run: |
         go build -v
-        go test ./... -count=1 -coverprofile=coverage/unit-coverage.txt
+        go test ./... -v -count=1 -coverprofile=coverage/unit-coverage.txt
     - name: Process coverage
       # Coverage is simple text files, so we can combine the integration
       # and unit test coverage by simply appending the latter with the
