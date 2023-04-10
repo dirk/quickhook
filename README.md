@@ -21,7 +21,7 @@ brew install quickhook
 
 First you'll need to install Quickhook in your repository: `quickhook install` command will discover hooks defined in the `.quickhook` directory and create Git hook shims for those. For example, the below is what you can expect from running installation in this repository:
 
-```
+```sh
 $ quickhook install
 Create file .git/hooks/commit-msg? [yn] y
 Installed shim .git/hooks/commit-msg
@@ -87,6 +87,32 @@ Quickhook is designed to be as fast and lightweight as possible. There are a few
 - Ship as a small, self-contained executable.
 - No configuration.
 - Do as much as possible in parallel.
+
+## Contributing
+
+Contributions are welcome. If you want to use the locally-built version of Quickhook in the Git hooks, there's a simple 3-line script that will set that up:
+
+```sh
+$ ./scripts/install.sh
+Installed shim .git/hooks/commit-msg
+Installed shim .git/hooks/pre-commit
+```
+
+Building and testing should be straightforward:
+
+```sh
+# Build a quickhook executable:
+$ go build
+
+# Run all tests:
+$ go test ./...
+```
+
+There's also a script that will generate and open an HTML page with coverage:
+
+```sh
+$ ./scripts/coverage.sh
+```
 
 ## License
 

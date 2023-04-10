@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/alecthomas/kong"
 	"github.com/fatih/color"
@@ -15,7 +16,8 @@ const VERSION = "2.0.0-pre"
 
 var cli struct {
 	Install struct {
-		Yes bool `short:"y" help:"Assume yes for all prompts"`
+		Yes bool   `short:"y" help:"Assume yes for all prompts"`
+		Bin string `help:"Path to Quickhook executable to use in the shim (if it's not on $PATH)"`
 	} `cmd:"" help:"Install Quickhook shims into .git/hooks"`
 	Hook struct {
 		PreCommit struct {
@@ -67,7 +69,11 @@ func main() {
 
 		// TODO: Dry run option.
 		prompt := !cli.Install.Yes
-		err = install(repo, prompt)
+		quickhook := strings.TrimSpace(cli.Install.Bin)
+		if quickhook == "" {
+			quickhook = "quickhook"
+		}
+		err = install(repo, quickhook, prompt)
 		if err != nil {
 			panic(err)
 		}

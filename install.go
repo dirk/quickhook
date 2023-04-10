@@ -11,7 +11,7 @@ import (
 	"github.com/dirk/quickhook/repo"
 )
 
-func install(repo *repo.Repo, prompt bool) error {
+func install(repo *repo.Repo, quickhook string, prompt bool) error {
 	hooks, err := listHooks(repo)
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func install(repo *repo.Repo, prompt bool) error {
 			}
 		}
 
-		installShim(repo, shimPath, hook, prompt)
+		installShim(repo, shimPath, quickhook, hook, prompt)
 
 		fmt.Printf("Installed shim %v\n", shimPath)
 	}
@@ -111,8 +111,8 @@ func promptForInstallShim(repo *repo.Repo, shimPath, hook string) (bool, error) 
 	}
 }
 
-func installShim(repo *repo.Repo, shimPath, hook string, prompt bool) error {
-	command, err := shimCommandForHook(hook)
+func installShim(repo *repo.Repo, shimPath, quickhook, hook string, prompt bool) error {
+	command, err := shimCommandForHook(quickhook, hook)
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func installShim(repo *repo.Repo, shimPath, hook string, prompt bool) error {
 	return nil
 }
 
-func shimCommandForHook(hook string) (string, error) {
+func shimCommandForHook(quickhook, hook string) (string, error) {
 	var args string
 
 	switch hook {
@@ -151,5 +151,5 @@ func shimCommandForHook(hook string) (string, error) {
 		return "", fmt.Errorf("invalid hook: %v", hook)
 	}
 
-	return fmt.Sprintf("quickhook hook %v", args), nil
+	return fmt.Sprintf("%s hook %s", quickhook, args), nil
 }
