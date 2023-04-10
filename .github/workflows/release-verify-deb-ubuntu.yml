@@ -1,4 +1,4 @@
-name: verify-linux-deb
+name: verify-deb-ubuntu
 
 on:
   workflow_call:
@@ -16,6 +16,7 @@ jobs:
       with:
         name: debs
     - run: |
+        dpkg --info quickhook-${{ inputs.version }}-amd64.deb
         dpkg --contents quickhook-${{ inputs.version }}-amd64.deb
         sudo apt install ./quickhook-${{ inputs.version }}-amd64.deb
     - run: |

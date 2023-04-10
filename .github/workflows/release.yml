@@ -22,8 +22,13 @@ jobs:
     with:
       tag: ${{ inputs.tag }}
       version: ${{ needs.version.outputs.version }}
-  verify-linux-deb:
-    uses: ./.github/workflows/release-verify-linux-deb.yml
+  verify-deb-ubuntu:
+    uses: ./.github/workflows/release-verify-deb-ubuntu.yml
+    needs: [version, build-linux]
+    with:
+      version: ${{ needs.version.outputs.version }}
+  verify-rpm-rhel:
+    uses: ./.github/workflows/release-verify-rpm-rhel.yml
     needs: [version, build-linux]
     with:
       version: ${{ needs.version.outputs.version }}
