@@ -1,17 +1,9 @@
 name: release
 
-on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag to release'
-        type: string
-        required: true
+on: workflow_dispatch
 
 jobs:
-  build-and-test:
+  release:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-      with:
-        ref: '${{ inputs.tag }}'
