@@ -1,7 +1,6 @@
 package hooks
 
 import (
-	// "fmt"
 	"bytes"
 	"io"
 	"testing"
@@ -13,7 +12,7 @@ import (
 	"github.com/dirk/quickhook/testutils"
 )
 
-func initGit(t *testing.T) testutils.TempDir {
+func initGitForPreCommit(t *testing.T) testutils.TempDir {
 	tempDir := testutils.NewTempDir(t, 1)
 	tempDir.RequireExec("git", "init", "--quiet", ".")
 	tempDir.RequireExec("git", "config", "--local", "user.name", "example")
@@ -24,7 +23,7 @@ func initGit(t *testing.T) testutils.TempDir {
 }
 
 func TestFailingHookWithoutPty(t *testing.T) {
-	tempDir := initGit(t)
+	tempDir := initGitForPreCommit(t)
 	tempDir.MkdirAll(".quickhook", "pre-commit")
 	tempDir.WriteFile(
 		[]string{".quickhook", "pre-commit", "fails"},
@@ -55,7 +54,7 @@ var ptyTests = []struct {
 func TestFailingHookWithPty(t *testing.T) {
 	for _, tt := range ptyTests {
 		t.Run(tt.name, func(t *testing.T) {
-			tempDir := initGit(t)
+			tempDir := initGitForPreCommit(t)
 			tempDir.MkdirAll(".quickhook", "pre-commit")
 			tempDir.WriteFile(
 				[]string{".quickhook", "pre-commit", "fails"},
@@ -79,7 +78,7 @@ func TestFailingHookWithPty(t *testing.T) {
 }
 
 func TestPassesWithNoHooks(t *testing.T) {
-	tempDir := initGit(t)
+	tempDir := initGitForPreCommit(t)
 	tempDir.MkdirAll(".quickhook", "pre-commit")
 
 	output, err := tempDir.ExecQuickhook("hook", "pre-commit")
@@ -88,7 +87,7 @@ func TestPassesWithNoHooks(t *testing.T) {
 }
 
 func TestPassesWithPassingHooks(t *testing.T) {
-	tempDir := initGit(t)
+	tempDir := initGitForPreCommit(t)
 	tempDir.MkdirAll(".quickhook", "pre-commit")
 	tempDir.WriteFile(
 		[]string{".quickhook", "pre-commit", "passes1"},
@@ -103,7 +102,7 @@ func TestPassesWithPassingHooks(t *testing.T) {
 }
 
 func TestPassesWithNoFilesToBeCommitted(t *testing.T) {
-	tempDir := initGit(t)
+	tempDir := initGitForPreCommit(t)
 	tempDir.MkdirAll(".quickhook", "pre-commit")
 	tempDir.WriteFile([]string{".quickhook", "pre-commit", "passes"}, "#!/bin/sh \n echo \"passed\"")
 	tempDir.RequireExec("git", "commit", "--message", "Commit example.txt", "--quiet", "--no-verify")
@@ -114,7 +113,7 @@ func TestPassesWithNoFilesToBeCommitted(t *testing.T) {
 }
 
 func TestHandlesDeletedFiles(t *testing.T) {
-	tempDir := initGit(t)
+	tempDir := initGitForPreCommit(t)
 	tempDir.MkdirAll(".quickhook", "pre-commit")
 	tempDir.WriteFile([]string{".quickhook", "pre-commit", "passes"}, "#!/bin/sh \n echo \"passed\"")
 	tempDir.RequireExec("git", "commit", "--message", "Commit example.txt", "--quiet", "--no-verify")
