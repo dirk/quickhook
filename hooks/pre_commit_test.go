@@ -127,3 +127,13 @@ func TestHandlesDeletedFiles(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "", output)
 }
+
+func TestShimsGitToDenyAccess(t *testing.T) {
+	tempDir := initGitForPreCommit(t)
+	tempDir.MkdirAll(".quickhook", "pre-commit")
+	tempDir.WriteFile([]string{".quickhook", "pre-commit", "accesses-git"}, "#!/bin/sh \n git status")
+
+	output, err := tempDir.ExecQuickhook("hook", "pre-commit")
+	assert.Error(t, err)
+	assert.Equal(t, "accesses-git: git is not allowed in parallel hooks (git status)\n", output)
+}
