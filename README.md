@@ -59,6 +59,12 @@ Pre-commit hooks receive the list of staged files separated by newlines on stdin
 
 **Note**: Pre-commit hooks will be executed in parallel and should not mutate the local repository state. For this reason `git` is shimmed on the hooks' $PATH to be unavailable.
 
+#### Mutating hooks
+
+You can also add executables to `.quickhook/pre-commit-mutating/`. These will be run _sequentially_, without Git shimmed, and may mutate the local repository state.
+
+#### Suggested formatting
+
 If you're unsure how to format your lines, there's an informal Unix convention which is already followed by many programming languages, linters, and so forth.
 
 ```
