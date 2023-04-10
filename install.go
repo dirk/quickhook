@@ -8,6 +8,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/samber/lo"
+
 	"github.com/dirk/quickhook/repo"
 )
 
@@ -54,22 +56,18 @@ func listHooks(repo *repo.Repo) ([]string, error) {
 
 	var hooks []string
 	for _, entry := range entries {
-		if entry.IsDir() && isHook(entry.Name()) {
-			hooks = append(hooks, entry.Name())
+		name := entry.Name()
+		// Rename the mutating hook to the regular pre-commit one.
+		if name == "pre-commit-mutating" {
+			name = "pre-commit"
+		}
+		isHook := name == "pre-commit" ||
+			name == "commit-msg"
+		if entry.IsDir() && isHook {
+			hooks = append(hooks, name)
 		}
 	}
-
-	return hooks, nil
-}
-
-func isHook(name string) bool {
-	switch name {
-	case
-		"pre-commit",
-		"commit-msg":
-		return true
-	}
-	return false
+	return lo.Uniq(hooks), nil
 }
 
 func promptForInstallShim(repo *repo.Repo, shimPath, hook string) (bool, error) {

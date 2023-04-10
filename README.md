@@ -108,6 +108,8 @@ $ go build
 $ go test ./...
 ```
 
+**Warning**: Many of the tests are integration-style tests which depend on a locally-built Quickhook executable. If you see unexpected test failures, please first try running `go build` before you rerun tests.
+
 There's also a script that will generate and open an HTML page with coverage:
 
 ```sh

@@ -34,24 +34,23 @@ func TestFailingHookWithoutPty(t *testing.T) {
 	assert.Equal(t, "fails: first line\nfails: second line\n", output)
 }
 
-var ptyTests = []struct {
-	name string
-	arg  []string
-	out  string
-}{
-	{
-		"no args",
-		[]string{},
-		"\x1b[31mfails\x1b[0m: first line\r\n\x1b[31mfails\x1b[0m: second line\r\n",
-	},
-	{
-		"no-color arg",
-		[]string{"--no-color"},
-		"fails: first line\r\nfails: second line\r\n",
-	},
-}
-
 func TestFailingHookWithPty(t *testing.T) {
+	ptyTests := []struct {
+		name string
+		arg  []string
+		out  string
+	}{
+		{
+			"no args",
+			[]string{},
+			"\x1b[31mfails\x1b[0m: first line\r\n\x1b[31mfails\x1b[0m: second line\r\n",
+		},
+		{
+			"no-color arg",
+			[]string{"--no-color"},
+			"fails: first line\r\nfails: second line\r\n",
+		},
+	}
 	for _, tt := range ptyTests {
 		t.Run(tt.name, func(t *testing.T) {
 			tempDir := initGitForPreCommit(t)
@@ -136,4 +135,38 @@ func TestShimsGitToDenyAccess(t *testing.T) {
 	output, err := tempDir.ExecQuickhook("hook", "pre-commit")
 	assert.Error(t, err)
 	assert.Equal(t, "accesses-git: git is not allowed in parallel hooks (git status)\n", output)
+}
+
+func TestMutatingCanAccessGit(t *testing.T) {
+	ptyTests := []struct {
+		name string
+		hook string
+		out  string
+	}{
+		{
+			"stdout",
+			"#!/bin/sh \n git status",
+			"",
+		},
+		{
+			"stderr",
+			"#!/bin/sh \n git status 1>&2",
+			"accesses-git: On branch master",
+		},
+	}
+	for _, tt := range ptyTests {
+		t.Run(tt.name, func(t *testing.T) {
+			tempDir := initGitForPreCommit(t)
+			tempDir.MkdirAll(".quickhook", "pre-commit-mutating")
+			tempDir.WriteFile([]string{".quickhook", "pre-commit-mutating", "accesses-git"}, tt.hook)
+
+			output, err := tempDir.ExecQuickhook("hook", "pre-commit")
+			assert.NoError(t, err)
+			if tt.out == "" {
+				assert.Empty(t, output)
+			} else {
+				assert.Contains(t, output, tt.out)
+			}
+		})
+	}
 }
