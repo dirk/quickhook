@@ -72,8 +72,11 @@ func listHooks(repo *repo.Repo) ([]string, error) {
 }
 
 func promptForInstallShim(stdin io.Reader, repo *repo.Repo, shimPath string) (bool, error) {
-	exists, err := repo.IsDir(shimPath)
-	if err != nil {
+	_, err := os.Stat(path.Join(repo.Root, shimPath))
+	exists := true
+	if os.IsNotExist(err) {
+		exists = false
+	} else if err != nil {
 		return false, err
 	}
 
