@@ -1,4 +1,4 @@
-name: build
+name: build-linux
 
 on:
   workflow_call:
@@ -7,23 +7,19 @@ on:
         description: "Tag to checkout and build"
         type: string
         required: true
-    outputs:
       version:
-        description: "Version without the leading 'v', eg. '1.5.0'"
-        value: ${{ jobs.build.outputs.version }}
+        description: "Version without the leading 'v'"
+        type: string
+        required: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
     strategy:
       matrix:
         os: [linux]
         arch: [amd64, arm64]
     steps:
-      - id: version
-        run: echo '${{ inputs.tag }}' | sed -e 's/^v/version=/' >> $GITHUB_OUTPUT
       - uses: actions/checkout@v3
         with:
           ref: '${{ inputs.tag }}'
@@ -40,12 +36,13 @@ jobs:
           fpm \
             --input-type dir \
             --output-type deb \
-            --package quickhook-${{ steps.version.outputs.version }}-${{ matrix.arch }}.deb \
+            --package quickhook-${{ inputs.version }}-${{ matrix.arch }}.deb \
             --name quickhook \
             --license bsd-3-clause \
-            --version ${{ steps.version.outputs.version }} \
+            --version ${{ inputs.version }} \
             --architecture ${{ matrix.arch }} \
-            build
+            --chdir build .
       - uses: actions/upload-artifact@v3
         with:
+          name: debs
           path: '*.deb'

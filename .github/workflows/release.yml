@@ -9,7 +9,21 @@ on:
         required: true
 
 jobs:
-  build:
-    uses: ./.github/workflows/release-build.yml
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - id: version
+        run: echo '${{ inputs.tag }}' | sed -e 's/^v/version=/' >> $GITHUB_OUTPUT
+  build-linux:
+    uses: ./.github/workflows/release-build-linux.yml
+    needs: version
     with:
       tag: ${{ inputs.tag }}
+      version: ${{ needs.version.outputs.version }}
+  verify-linux-deb:
+    uses: ./.github/workflows/release-verify-linux-deb.yml
+    needs: [version, build-linux]
+    with:
+      version: ${{ needs.version.outputs.version }}
