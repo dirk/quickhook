@@ -14,16 +14,19 @@ jobs:
     - uses: actions/setup-go@v3
       with:
         go-version: '1.20'
-    - name: Build and integration test
+    - name: Build and test with integration coverage
       run: |
         go build -cover -v
         mkdir -p coverage/integration
         GOCOVERDIR=$(pwd)/coverage/integration go test ./... -v -count=1
-    - name: Rebuild and unit test
+    - name: Rebuild and test with unit coverage
       run: |
         go build -v
         go test ./... -count=1 -coverprofile=coverage/unit-coverage.txt
     - name: Process coverage
+      # Coverage is simple text files, so we can combine the integration
+      # and unit test coverage by simply appending the latter with the
+      # first line skipped.
       run: |
         go tool covdata textfmt -i=coverage/integration -o coverage/integration-coverage.txt
         cp coverage/integration-coverage.txt coverage/coverage.txt
