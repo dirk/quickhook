@@ -5,6 +5,10 @@ set -e
 # Run this from the repository root, not from scripts!
 export GOCOVERDIR=$(pwd)/coverage
 
+echo "Rebuilding with coverage enabled..."
+go clean
+go build -cover
+
 echo "Running tests with coverage written to $GOCOVERDIR..."
 rm -rf $GOCOVERDIR
 mkdir $GOCOVERDIR

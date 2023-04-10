@@ -1,8 +1,9 @@
 # quickhook
 
-[![Build Status](https://travis-ci.org/dirk/quickhook.svg?branch=master)](https://travis-ci.org/dirk/quickhook)
+![Build Status](https://github.com/dirk/quickhook/actions/workflows/go.yml/badge.svg)
+![codecov](https://codecov.io/github/dirk/quickhook/branch/main/graph/badge.svg?token=FRMS9TRJ93)
 
-Quickhook is a fast, Unix'y, opinionated Git hook runner. It handles running all user-defined hooks, collecting their output, reporting failures, and exiting with a non-zero status code if appropriate.
+Quickhook is a Git hook runner designed for speed. It is opinionated where it matters: hooks are executables organized by directory and must exit with a non-zero code on error. Everything else is up to you!
 
 ## Installation
 
@@ -18,7 +19,7 @@ brew install quickhook
 
 ## Usage
 
-First you'll need to set Quickhook to be called in your Git hooks. The `quickhook install` command will discover hooks defined in the `.quickhook` directory and create Git hook shims for those. For example, the below is what you can expect if you clone this repository and install the shims:
+First you'll need to install Quickhook in your repository: `quickhook install` command will discover hooks defined in the `.quickhook` directory and create Git hook shims for those. For example, the below is what you can expect from running installation in this repository:
 
 ```
 $ quickhook install
@@ -28,14 +29,14 @@ Create file .git/hooks/pre-commit? [yn] y
 Installed shim .git/hooks/pre-commit
 ```
 
-To make it easier to test hooks outside of the normal Git paths the `hook` sub-commands provide some additional options. For example, these are some of the options you can use with the pre-commit hook command:
+Quickhook provides some options to run various hooks directly for development and testing. This way you don't have to follow the whole Git commit workflow just to exercise the new hook you're working on.
 
 ```sh
 # Run the pre-commit hooks on all Git-tracked files in the repository
 quickhook hook pre-commit --all
 
 # Run them on just one or more files
-quickhook hook pre-commit --files hooks/commit_msg.go hooks/pre_commit.go
+quickhook hook pre-commit --files=hooks/commit_msg.go,hooks/pre_commit.go
 ```
 
 You can see all of the options by passing `--help` to the sub-command:
@@ -58,7 +59,7 @@ Pre-commit hooks receive the list of staged files separated by newlines on stdin
 
 **Note**: Pre-commit hooks will be executed in parallel and should not mutate the local repository state.
 
-File-and-line-specific errors should be written in the following format:
+If you're unsure how to format your lines, there's an informal Unix convention which is already followed by many programming languages, linters, and so forth.
 
 ```
 some/directory/and/file.go:123: Something doesn't look right
@@ -73,8 +74,6 @@ A more formal definition of an error line is:
 - Any printable character describing the error
 - A newline (`\n`) terminating the error line
 
-This informal Unix convention is already followed by many programming languages, linters, and so forth.
-
 ### commit-msg
 
 Commit-message hooks are run sequentially. They receive a single argument: a path to a temporary file containing the message for the commit. If they exit with a non-zero exit code the commit will be aborted and any stdout/stderr output displayed to the user.
@@ -86,7 +85,7 @@ Given that they are run sequentially, `commit-msg` hooks are allowed to mutate t
 Quickhook is designed to be as fast and lightweight as possible. There are a few guiding principles for this:
 
 - Ship as a small, self-contained executable.
-- Eschew configuration in favor of rigid adherence to Unix'y approach of composing programs.
+- No configuration.
 - Do as much as possible in parallel.
 
 ## License

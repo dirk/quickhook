@@ -35,7 +35,6 @@ func (hook *PreCommit) Run(files []string) error {
 	if err != nil {
 		return err
 	}
-	// fmt.Printf("%#v\n", executables)
 
 	stdin := strings.Join(files, "\n")
 	// Run hook executables in parallel.
@@ -45,7 +44,6 @@ func (hook *PreCommit) Run(files []string) error {
 		return runExecutable(hook.Repo.Root, executable, env, stdin)
 	})
 
-	// fmt.Printf("%#v\n", results)
 	errored := false
 	for _, result := range results {
 		if result.err == nil {
