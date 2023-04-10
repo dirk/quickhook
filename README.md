@@ -42,7 +42,7 @@ $ brew install quickhook
 
 ### Linux
 
-Installable debs and RPMs are available for the [latest release](https://github.com/evilmartians/lefthook/releases/latest).
+Installable debs and RPMs are available for the [latest release](https://github.com/dirk/quickhook/releases/latest).
 
 ## Usage
 
