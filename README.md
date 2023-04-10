@@ -1,6 +1,6 @@
 # quickhook
 
-![Build Status](https://github.com/dirk/quickhook/actions/workflows/go.yml/badge.svg)
+![Build Status](https://github.com/dirk/quickhook/actions/workflows/push.yml/badge.svg)
 ![codecov](https://codecov.io/github/dirk/quickhook/branch/main/graph/badge.svg?token=FRMS9TRJ93)
 
 Quickhook is a Git hook runner designed for speed. It is opinionated where it matters: hooks are executables organized by directory and must exit with a non-zero code on error. Everything else is up to you!
@@ -39,6 +39,10 @@ $ brew install quickhook
 ...
 /opt/homebrew/Cellar/quickhook/1.5.0: 5 files, 3.1MB, built in 2 seconds
 ```
+
+### Linux
+
+Installable debs and RPMs are available for the [latest release](https://github.com/evilmartians/lefthook/releases/latest).
 
 ## Usage
 
