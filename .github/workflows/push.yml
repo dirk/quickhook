@@ -7,31 +7,53 @@ on:
     branches: [main]
 
 jobs:
-  build-and-test:
+  test-cover-integration:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-go@v3
-      with:
-        go-version: '1.20'
-    - name: Build and test with integration coverage
-      run: |
-        go build -cover -v
-        mkdir -p coverage/integration
-        GOCOVERDIR=$(pwd)/coverage/integration go test ./... -v -count=1
-    - name: Rebuild and test with unit coverage
-      run: |
-        go build -v
-        go test ./... -v -count=1 -coverprofile=coverage/unit-coverage.txt
-    - name: Process coverage
-      # Coverage is simple text files, so we can combine the integration
-      # and unit test coverage by simply appending the latter with the
-      # first line skipped.
-      run: |
-        go tool covdata textfmt -i=coverage/integration -o coverage/integration-coverage.txt
-        cp coverage/integration-coverage.txt coverage/coverage.txt
-        tail -n +2 coverage/unit-coverage.txt >> coverage/coverage.txt
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        files: ./coverage/coverage.txt
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.20'
+      - name: Build and test with integration coverage
+        run: |
+          go build -cover -v
+          mkdir -p coverage
+          GOCOVERDIR=$(pwd)/coverage go test ./... -v -count=1
+          go tool covdata textfmt -i=coverage -o coverage-integration.txt
+      - uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: coverage-integration.txt
+  test-cover-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.20'
+      - name: Build and test with unit coverage
+        run: |
+          go build -v
+          go test ./... -v -count=1 -coverprofile=coverage-unit.txt
+      - uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: coverage-unit.txt
+  coverage:
+    runs-on: ubuntu-latest
+    needs: [test-cover-integration, test-cover-build]
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: coverage
+      - name: Process coverage
+        # Coverage is simple text files, so we can combine the integration
+        # and unit test coverage by simply appending the latter with the
+        # first line skipped.
+        run: |
+          cp coverage-integration.txt coverage.txt
+          tail -n +2 coverage-unit.txt >> coverage.txt
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.txt
