@@ -16,7 +16,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - id: version
-        run: echo '${{ inputs.tag }}' | sed -e 's/^v/version=/' >> $GITHUB_OUTPUT
+        run: echo "${{ inputs.tag }}" | sed -E "s/^v?/version=/" >> $GITHUB_OUTPUT
   build-linux:
     uses: ./.github/workflows/release-build-linux.yml
     needs: version
