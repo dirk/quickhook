@@ -9,11 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dirk/quickhook/testutils"
+	"github.com/dirk/quickhook/internal/test"
 )
 
-func initGitForPreCommit(t *testing.T) testutils.TempDir {
-	tempDir := testutils.NewTempDir(t, 1)
+func initGitForPreCommit(t *testing.T) test.TempDir {
+	tempDir := test.NewTempDir(t, 1)
 	tempDir.RequireExec("git", "init", "--quiet", ".")
 	tempDir.RequireExec("git", "config", "--local", "user.name", "example")
 	tempDir.RequireExec("git", "config", "--local", "user.email", "example@example.com")

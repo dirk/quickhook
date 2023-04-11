@@ -8,12 +8,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/dirk/quickhook/internal/test"
 	"github.com/dirk/quickhook/repo"
-	"github.com/dirk/quickhook/testutils"
 )
 
 func TestInstallPreCommitYes(t *testing.T) {
-	tempDir := testutils.NewTempDir(t, 0)
+	tempDir := test.NewTempDir(t, 0)
 	tempDir.RequireExec("git", "init", "--quiet", ".")
 	tempDir.MkdirAll(".quickhook", "pre-commit")
 
@@ -28,7 +28,7 @@ func TestInstallPreCommitYes(t *testing.T) {
 }
 
 func TestInstallPreCommitMutatingYes(t *testing.T) {
-	tempDir := testutils.NewTempDir(t, 0)
+	tempDir := test.NewTempDir(t, 0)
 	tempDir.RequireExec("git", "init", "--quiet", ".")
 	tempDir.MkdirAll(".quickhook", "pre-commit-mutating")
 
@@ -43,7 +43,7 @@ func TestInstallPreCommitMutatingYes(t *testing.T) {
 }
 
 func TestInstallNoQuickhookDirectory(t *testing.T) {
-	tempDir := testutils.NewTempDir(t, 0)
+	tempDir := test.NewTempDir(t, 0)
 	tempDir.RequireExec("git", "init", "--quiet", ".")
 
 	output, err := tempDir.ExecQuickhook("install", "--yes")
@@ -85,7 +85,7 @@ func TestPromptForInstall(t *testing.T) {
 	}
 	for _, tt := range ptyTests {
 		t.Run(tt.name, func(t *testing.T) {
-			tempDir := testutils.NewTempDir(t, 0)
+			tempDir := test.NewTempDir(t, 0)
 			repo := &repo.Repo{Root: tempDir.Root}
 
 			stdin := strings.NewReader(tt.stdin)

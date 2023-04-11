@@ -6,9 +6,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/samber/lo"
 	lop "github.com/samber/lo/parallel"
 
+	"github.com/dirk/quickhook/internal"
 	"github.com/dirk/quickhook/repo"
 	"github.com/dirk/quickhook/tracing"
 )
@@ -26,41 +26,32 @@ type PreCommit struct {
 // argsFiles can be non-empty with the files passed in by the user when manually running this hook,
 // or it can be empty and the list of files will be retrieved from Git.
 func (hook *PreCommit) Run(argsFiles []string) error {
-	// Resolve files to be committed in parallel with shimming git.
-	filesChan := lo.Async2(func() ([]string, error) {
-		if len(argsFiles) > 0 {
-			return argsFiles, nil
-		}
-		if files, err := hook.Repo.FilesToBeCommitted(); err != nil {
-			return nil, err
-		} else {
-			return files, nil
-		}
-	})
-	shimChan := lo.Async2(shimGit)
-	mutatingChan := lo.Async2(func() ([]string, error) {
-		return hook.Repo.FindHookExecutables(PRE_COMMIT_MUTATING_HOOK)
-	})
-	parallelChan := lo.Async2(func() ([]string, error) {
-		return hook.Repo.FindHookExecutables(PRE_COMMIT_HOOK)
-	})
-
-	dirForPath, err := (<-shimChan).Unpack()
+	// The shimming is really fast, so just do it first with a defer for cleaning up the
+	// temporary directory.
+	dirForPath, err := shimGit()
 	if err != nil {
 		return err
 	}
-	// Check the shimChan first so that if we did successfully create a directory with a shim we
-	// can make sure to clean it up if anything else errored.
 	defer os.RemoveAll(dirForPath)
-	files, err := (<-filesChan).Unpack()
-	if err != nil {
-		return err
-	}
-	mutatingExecutables, err := (<-mutatingChan).Unpack()
-	if err != nil {
-		return err
-	}
-	parallelExecutables, err := (<-parallelChan).Unpack()
+
+	files, mutatingExecutables, parallelExecutables, err := internal.FanOut3(
+		func() ([]string, error) {
+			if len(argsFiles) > 0 {
+				return argsFiles, nil
+			}
+			if files, err := hook.Repo.FilesToBeCommitted(); err != nil {
+				return nil, err
+			} else {
+				return files, nil
+			}
+		},
+		func() ([]string, error) {
+			return hook.Repo.FindHookExecutables(PRE_COMMIT_MUTATING_HOOK)
+		},
+		func() ([]string, error) {
+			return hook.Repo.FindHookExecutables(PRE_COMMIT_HOOK)
+		},
+	)
 	if err != nil {
 		return err
 	}
