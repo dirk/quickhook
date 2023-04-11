@@ -9,9 +9,14 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+
+	"github.com/dirk/quickhook/tracing"
 )
 
 func runExecutable(root, executable string, env []string, stdin string, arg ...string) hookResult {
+	dir, command := path.Split(executable)
+	span := tracing.NewSpan(fmt.Sprintf("hook %s %s", path.Base(dir), command))
+	defer span.End()
 	cmd := exec.Command(path.Join(root, executable), arg...)
 	cmd.Env = append(os.Environ(), env...)
 	cmd.Stdin = strings.NewReader(stdin)

@@ -6,9 +6,13 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
+
+	"github.com/dirk/quickhook/tracing"
 )
 
 func (repo *Repo) FilesToBeCommitted() ([]string, error) {
+	span := tracing.NewSpan("git diff")
+	defer span.End()
 	lines, err := repo.ExecCommandLines("git", "diff", "--name-only", "--cached")
 	if err != nil {
 		return nil, err
@@ -20,6 +24,9 @@ func (repo *Repo) FilesToBeCommitted() ([]string, error) {
 }
 
 func (repo *Repo) ShimGit() (string, error) {
+	span := tracing.NewSpan("git shim")
+	defer span.End()
+
 	dir, err := os.MkdirTemp("", "quickhook-git-*")
 	if err != nil {
 		return "", err

@@ -10,6 +10,7 @@ import (
 
 	"github.com/dirk/quickhook/hooks"
 	"github.com/dirk/quickhook/repo"
+	"github.com/dirk/quickhook/tracing"
 )
 
 const VERSION = "1.5.0"
@@ -27,8 +28,9 @@ var cli struct {
 			MessageFile string `arg:"" help:"Temp file containing the commit message"`
 		} `cmd:"" help:"Run commit-msg hooks"`
 	} `cmd:""`
-	Version kong.VersionFlag `help:"Show version information"`
 	NoColor bool             `env:"NO_COLOR" help:"Don't colorize output"`
+	Trace   bool             `env:"QUICKHOOK_TRACE" help:"Enable tracing, writes to trace.out"`
+	Version kong.VersionFlag `help:"Show version information"`
 }
 
 func main() {
@@ -52,6 +54,11 @@ func main() {
 
 	parsed, err := parser.Parse(args)
 	parser.FatalIfErrorf(err)
+
+	if cli.Trace {
+		finish := tracing.Start()
+		defer finish()
+	}
 
 	opts := hooks.Opts{
 		NoColor: cli.NoColor,
