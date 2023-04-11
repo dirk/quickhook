@@ -1,4 +1,5 @@
 name: release
+run-name: Prepare release ${{ inputs.tag }}
 
 on:
   workflow_dispatch:
