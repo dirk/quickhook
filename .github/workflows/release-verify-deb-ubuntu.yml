@@ -12,13 +12,13 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/download-artifact@v3
-      with:
-        name: debs
-    - run: |
-        dpkg --info quickhook-${{ inputs.version }}-amd64.deb
-        dpkg --contents quickhook-${{ inputs.version }}-amd64.deb
-        sudo apt install ./quickhook-${{ inputs.version }}-amd64.deb
-    - run: |
-        quickhook --version
-        [[ $(quickhook --version) == "${{ inputs.version }}" ]]
+      - uses: actions/download-artifact@v3
+        with:
+          name: debs
+      - run: |
+          dpkg --info quickhook-${{ inputs.version }}-amd64.deb
+          dpkg --contents quickhook-${{ inputs.version }}-amd64.deb
+          sudo apt install ./quickhook-${{ inputs.version }}-amd64.deb
+      - run: |
+          quickhook --version
+          [[ $(quickhook --version) == "${{ inputs.version }}" ]]

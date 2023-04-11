@@ -13,13 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     container: redhat/ubi8-minimal:latest
     steps:
-    - uses: actions/download-artifact@v3
-      with:
-        name: rpms
-    - run: |
-        rpm --package quickhook-${{ inputs.version }}-amd64.rpm --query --info
-        rpm --package quickhook-${{ inputs.version }}-amd64.rpm --query --list
-        rpm --install quickhook-${{ inputs.version }}-amd64.rpm
-    - run: |
-        quickhook --version
-        [[ $(quickhook --version) == "${{ inputs.version }}" ]]
+      - uses: actions/download-artifact@v3
+        with:
+          name: rpms
+      - run: |
+          rpm --package quickhook-${{ inputs.version }}-amd64.rpm --query --info
+          rpm --package quickhook-${{ inputs.version }}-amd64.rpm --query --list
+          rpm --install quickhook-${{ inputs.version }}-amd64.rpm
+      - run: |
+          quickhook --version
+          [[ $(quickhook --version) == "${{ inputs.version }}" ]]

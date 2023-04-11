@@ -1,11 +1,11 @@
 name: release
-run-name: Prepare ${{ inputs.tag }} for release
+run-name: Prepare ${{ inputs.version }} for release
 
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Tag to release'
+      version:
+        description: 'Version'
         type: string
         required: true
 
@@ -15,13 +15,15 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
+      # It's easier to work with the version when we've stripped the leading
+      # "v" off of it.
       - id: version
-        run: echo "${{ inputs.tag }}" | sed -E "s/^v?/version=/" >> $GITHUB_OUTPUT
+        run: |
+          echo "${{ inputs.version }}" | sed -E "s/^v?/version=/" >> $GITHUB_OUTPUT
   build-linux:
     uses: ./.github/workflows/release-build-linux.yml
     needs: version
     with:
-      tag: ${{ inputs.tag }}
       version: ${{ needs.version.outputs.version }}
   verify-deb-ubuntu:
     uses: ./.github/workflows/release-verify-deb-ubuntu.yml
