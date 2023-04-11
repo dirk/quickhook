@@ -131,6 +131,21 @@ Quickhook is designed to be as fast and lightweight as possible. There are a few
 - No configuration.
 - Do as much as possible in parallel.
 
+### Tracing
+
+Set `QUICKHOOK_TRACE=1` (or pass `--trace`) to enable tracing during hook execution:
+
+```sh
+$ QUICKHOOK_TRACE=1 git commit ...
+Traced 3 span(s):
+git diff 4ms
+git shim 473ns
+hook pre-commit go-vet 238ms
+Traced 1 span(s):
+hook commit-msg trailing-whitespace 3ms
+...
+```
+
 ## Contributing
 
 Contributions are welcome. If you want to use the locally-built version of Quickhook in the Git hooks, there's a simple 3-line script that will set that up:
