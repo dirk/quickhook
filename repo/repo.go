@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+
+	"github.com/dirk/quickhook/tracing"
 )
 
 type Repo struct {
@@ -27,8 +29,10 @@ func NewRepo() (*Repo, error) {
 }
 
 func (repo *Repo) FindHookExecutables(hook string) ([]string, error) {
-	dir := path.Join(".quickhook", hook)
+	span := tracing.NewSpan("find " + hook)
+	defer span.End()
 
+	dir := path.Join(".quickhook", hook)
 	var infos []fs.FileInfo
 	{
 		f, err := os.Open(path.Join(repo.Root, dir))

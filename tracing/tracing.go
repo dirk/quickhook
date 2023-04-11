@@ -33,7 +33,7 @@ func (span *Span) Elapsed() time.Duration {
 var spans []*Span
 
 func Start() func() {
-	spans = make([]*Span, 0)
+	spans = []*Span{}
 	return func() {
 		fmt.Printf("Traced %v span(s):\n", len(spans))
 		for _, span := range spans {

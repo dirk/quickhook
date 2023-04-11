@@ -60,10 +60,7 @@ func main() {
 		defer finish()
 	}
 
-	opts := hooks.Opts{
-		NoColor: cli.NoColor,
-	}
-	if opts.NoColor {
+	if cli.NoColor {
 		color.NoColor = true
 	}
 
@@ -105,19 +102,8 @@ func main() {
 			panic(err)
 		}
 
-		files := cli.Hook.PreCommit.Files
-		if len(files) == 0 {
-			files, err = repo.FilesToBeCommitted()
-			if err != nil {
-				panic(err)
-			}
-		}
-
-		hook := hooks.PreCommit{
-			Repo: repo,
-			Opts: opts,
-		}
-		err = hook.Run(files)
+		hook := hooks.PreCommit{Repo: repo}
+		err = hook.Run(cli.Hook.PreCommit.Files)
 		if err != nil {
 			panic(err)
 		}
