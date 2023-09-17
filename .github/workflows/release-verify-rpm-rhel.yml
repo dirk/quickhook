@@ -1,4 +1,4 @@
-name: verify-rpm-rhel
+name: release-verify-rpm-rhel
 
 on:
   workflow_call:
@@ -15,11 +15,11 @@ jobs:
     steps:
       - uses: actions/download-artifact@v3
         with:
-          name: rpms
+          name: artifact
       - run: |
-          rpm --package quickhook-${{ inputs.version }}-amd64.rpm --query --info
-          rpm --package quickhook-${{ inputs.version }}-amd64.rpm --query --list
-          rpm --install quickhook-${{ inputs.version }}-amd64.rpm
+          rpm --package quickhook-${{ inputs.version }}-linux-amd64.rpm --query --info
+          rpm --package quickhook-${{ inputs.version }}-linux-amd64.rpm --query --list
+          rpm --install quickhook-${{ inputs.version }}-linux-amd64.rpm
       - run: |
           quickhook --version
           [[ $(quickhook --version) == "${{ inputs.version }}" ]]

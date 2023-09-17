@@ -1,4 +1,4 @@
-name: build-linux
+name: release-build
 
 on:
   workflow_call:
@@ -25,38 +25,41 @@ jobs:
           ruby-version: '3.1'
       - run: gem install fpm
       - name: Set version
-        run: sed -i "s/VERSION = \"main\"/VERSION = \"${{ inputs.version }}\"/" quickhook.go
+        run: sed -i "s/VERSION = \"[^\"]*\"/VERSION = \"${{ inputs.version }}\"/" quickhook.go
       - name: Build
         run: |
           mkdir -p build/usr/bin
           GOARCH=${{ matrix.arch }} GOOS=${{ matrix.os }} CGO_ENABLED=0 go build -o build/usr/bin/quickhook
       - name: Package .debs
+        if: ${{ matrix.os == 'linux' }}
         run: |
           fpm \
             --input-type dir \
             --output-type deb \
-            --package quickhook-${{ inputs.version }}-${{ matrix.arch }}.deb \
+            --package quickhook-${{ inputs.version }}-${{ matrix.os }}-${{ matrix.arch }}.deb \
             --name quickhook \
             --license bsd-3-clause \
             --version ${{ inputs.version }} \
             --architecture ${{ matrix.arch }} \
             --chdir build .
-      - uses: actions/upload-artifact@v3
-        with:
-          name: debs
-          path: '*.deb'
       - name: Package .rpms
+        if: ${{ matrix.os == 'linux' }}
         run: |
           fpm \
             --input-type dir \
             --output-type rpm \
-            --package quickhook-${{ inputs.version }}-${{ matrix.arch }}.rpm \
+            --package quickhook-${{ inputs.version }}-${{ matrix.os }}-${{ matrix.arch }}.rpm \
             --name quickhook \
             --license bsd-3-clause \
             --version ${{ inputs.version }} \
             --architecture ${{ matrix.arch }} \
             --chdir build .
+      # - name: Copy binaries
+      #   if: ${{ matrix.os == 'darwin' }}
+      #   run: |
+      #     cp build/usr/bin/quickhook quickhook-${{ matrix.os }}-${{ matrix.arch }}
       - uses: actions/upload-artifact@v3
         with:
-          name: rpms
-          path: '*.rpm'
+          path: |
+            *.deb
+            *.rpm

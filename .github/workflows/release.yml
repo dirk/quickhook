@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version'
+        description: 'Version (eg. v1.2.3)'
         type: string
         required: true
 
@@ -21,7 +21,7 @@ jobs:
         run: |
           echo "${{ inputs.version }}" | sed -E "s/^v?/version=/" >> $GITHUB_OUTPUT
   build-linux:
-    uses: ./.github/workflows/release-build-linux.yml
+    uses: ./.github/workflows/release-build.yml
     needs: version
     with:
       version: ${{ needs.version.outputs.version }}

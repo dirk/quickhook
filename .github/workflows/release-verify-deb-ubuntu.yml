@@ -1,4 +1,4 @@
-name: verify-deb-ubuntu
+name: release-verify-deb-ubuntu
 
 on:
   workflow_call:
@@ -14,11 +14,11 @@ jobs:
     steps:
       - uses: actions/download-artifact@v3
         with:
-          name: debs
+          name: artifact
       - run: |
-          dpkg --info quickhook-${{ inputs.version }}-amd64.deb
-          dpkg --contents quickhook-${{ inputs.version }}-amd64.deb
-          sudo apt install ./quickhook-${{ inputs.version }}-amd64.deb
+          dpkg --info quickhook-${{ inputs.version }}-linux-amd64.deb
+          dpkg --contents quickhook-${{ inputs.version }}-linux-amd64.deb
+          sudo apt install ./quickhook-${{ inputs.version }}-linux-amd64.deb
       - run: |
           quickhook --version
           [[ $(quickhook --version) == "${{ inputs.version }}" ]]
