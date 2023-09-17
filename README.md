@@ -94,7 +94,7 @@ Quickhook will look for hooks in a corresponding sub-directory of the `.quickhoo
 
 Pre-commit hooks receive the list of staged files separated by newlines on stdin. They are expected to write their result to stdout/stderr (Quickhook doesn't care). If they exit with a non-zero exit code then the commit will be aborted and their output displayed to the user. See the [`go-vet`](.quickhook/pre-commit/go-vet) file for an example.
 
-**Note**: Pre-commit hooks will be executed in parallel and should not mutate the local repository state. For this reason `git` is shimmed on the hooks' $PATH to be unavailable.
+**Note**: Pre-commit hooks will be executed in parallel and should not mutate the local repository state. For this reason `git` is shimmed on the hooks' $PATH to be unavailable for all but the safest commands. The shim is implemented [here](./hooks/pre_commit_git_shim.sh).
 
 #### Mutating hooks
 
