@@ -17,13 +17,11 @@ jobs:
       - name: Build and test with integration coverage
         run: |
           go build -cover -v
-          mkdir -p coverage
-          GOCOVERDIR=$(pwd)/coverage go test ./... -v -count=1
-          go tool covdata textfmt -i=coverage -o coverage-integration.txt
+          mkdir -p coverage/integration
+          GOCOVERDIR="$(pwd)/coverage/integration" go test ./... -v -count=1
       - uses: actions/upload-artifact@v3
         with:
-          name: coverage
-          path: coverage-integration.txt
+          path: coverage
   test-cover-build:
     runs-on: ubuntu-latest
     steps:
@@ -34,26 +32,21 @@ jobs:
       - name: Build and test with unit coverage
         run: |
           go build -v
-          go test ./... -v -count=1 -coverprofile=coverage-unit.txt
+          mkdir -p coverage/unit
+          go test ./... -v -count=1 -cover -args -test.gocoverdir="$PWD/coverage/unit"
       - uses: actions/upload-artifact@v3
         with:
-          name: coverage
-          path: coverage-unit.txt
+          path: coverage
   coverage:
     runs-on: ubuntu-latest
     needs: [test-cover-integration, test-cover-build]
     steps:
+      - uses: actions/checkout@v3
       - uses: actions/download-artifact@v3
-        with:
-          name: coverage
       - name: Process coverage
-        # Coverage is simple text files, so we can combine the integration
-        # and unit test coverage by simply appending the latter with the
-        # first line skipped.
         run: |
-          cp coverage-integration.txt coverage.txt
-          tail -n +2 coverage-unit.txt >> coverage.txt
+          go tool covdata textfmt -i=./artifact/unit,./artifact/integration -o=coverage.txt
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
-          files: ./coverage.txt
+          file: ./coverage.txt

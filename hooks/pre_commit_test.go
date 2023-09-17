@@ -3,6 +3,8 @@ package hooks
 import (
 	"bytes"
 	"io"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/creack/pty"
@@ -127,14 +129,34 @@ func TestHandlesDeletedFiles(t *testing.T) {
 	assert.Equal(t, "", output)
 }
 
-func TestShimsGitToDenyAccess(t *testing.T) {
+func TestGitShimAllowsReadonlyAccess(t *testing.T) {
 	tempDir := initGitForPreCommit(t)
 	tempDir.MkdirAll(".quickhook", "pre-commit")
 	tempDir.WriteFile([]string{".quickhook", "pre-commit", "accesses-git"}, "#!/bin/sh \n git status")
 
 	output, err := tempDir.ExecQuickhook("hook", "pre-commit")
+	assert.Nil(t, err)
+	assert.Empty(t, output)
+}
+
+func TestGitShimDeniesOtherAccess(t *testing.T) {
+	tempDir := initGitForPreCommit(t)
+	tempDir.MkdirAll(".quickhook", "pre-commit")
+	tempDir.WriteFile([]string{".quickhook", "pre-commit", "reset0"}, "#!/bin/sh \n git reset")
+	tempDir.WriteFile([]string{".quickhook", "pre-commit", "reset1"}, "#!/bin/sh \n git reset --hard")
+
+	output, err := tempDir.ExecQuickhook("hook", "pre-commit")
 	assert.Error(t, err)
-	assert.Equal(t, "accesses-git: git is not allowed in parallel hooks (git status)\n", output)
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	sort.Strings(lines)
+	assert.Equal(
+		t,
+		[]string{
+			"reset0: git is not allowed in parallel hooks (git reset)",
+			"reset1: git is not allowed in parallel hooks (git reset --hard)",
+		},
+		lines,
+	)
 }
 
 func TestMutatingCanAccessGit(t *testing.T) {

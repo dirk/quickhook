@@ -1,8 +1,10 @@
 package hooks
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 
@@ -12,6 +14,9 @@ import (
 	"github.com/dirk/quickhook/repo"
 	"github.com/dirk/quickhook/tracing"
 )
+
+//go:embed pre_commit_git_shim.sh
+var PRE_COMMIT_GIT_SHIM string
 
 const PRE_COMMIT_HOOK = "pre-commit"
 const PRE_COMMIT_MUTATING_HOOK = "pre-commit-mutating"
@@ -95,6 +100,13 @@ func (hook *PreCommit) checkResult(result hookResult) bool {
 }
 
 func shimGit() (string, error) {
+	actualGit, err := exec.LookPath("git")
+	if err != nil {
+		return "", err
+	}
+	// Trusting that we didn't get a malicious path back from LookPath().
+	templated := strings.Replace(PRE_COMMIT_GIT_SHIM, "ACTUAL_GIT", actualGit, 1)
+
 	span := tracing.NewSpan("shim-git")
 	defer span.End()
 
@@ -104,12 +116,7 @@ func shimGit() (string, error) {
 	}
 
 	git := path.Join(dir, "git")
-	err = os.WriteFile(git, []byte(strings.Join([]string{
-		"#!/bin/sh",
-		"echo \"git is not allowed in parallel hooks (git $@)\"",
-		"exit 1",
-		"",
-	}, "\n")), 0755)
+	err = os.WriteFile(git, []byte(templated), 0755)
 	if err != nil {
 		return "", err
 	}
