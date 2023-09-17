@@ -13,7 +13,7 @@ import (
 	"github.com/dirk/quickhook/tracing"
 )
 
-const VERSION = "main"
+const VERSION = "1.6.1"
 
 var cli struct {
 	Install struct {
