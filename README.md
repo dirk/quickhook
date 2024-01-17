@@ -113,7 +113,7 @@ A more formal definition of an error line is:
 - Sequence of characters representing a valid path
 - A colon (`:`) character
 - Integer of the line where the error occurred
-- A color character followed by a space character
+- A colon character followed by a space character
 - Any printable character describing the error
 - A newline (`\n`) terminating the error line
 
