@@ -16,7 +16,7 @@ import (
 
 func initGitForPreCommit(t *testing.T) test.TempDir {
 	tempDir := test.NewTempDir(t, 1)
-	tempDir.RequireExec("git", "init", "--quiet", ".")
+	tempDir.RequireExec("git", "init", "--initial-branch=main", "--quiet", ".")
 	tempDir.RequireExec("git", "config", "--local", "user.name", "example")
 	tempDir.RequireExec("git", "config", "--local", "user.email", "example@example.com")
 	tempDir.WriteFile([]string{"example.txt"}, "Changed!")
@@ -173,7 +173,7 @@ func TestMutatingCanAccessGit(t *testing.T) {
 		{
 			"stderr",
 			"#!/bin/sh \n git status 1>&2",
-			"accesses-git: On branch master",
+			"accesses-git: On branch main",
 		},
 	}
 	for _, tt := range ptyTests {

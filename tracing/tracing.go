@@ -8,22 +8,22 @@ import (
 type Span struct {
 	name  string
 	start time.Time
-	end   *time.Time
+	end   time.Time
 }
 
 func NewSpan(name string) *Span {
+	start := time.Now()
 	span := &Span{
 		name:  name,
-		start: time.Now(),
-		end:   nil,
+		start: start,
+		end:   start,
 	}
 	spans = append(spans, span)
 	return span
 }
 
 func (span *Span) End() {
-	now := time.Now()
-	span.end = &now
+	span.end = time.Now()
 }
 
 func (span *Span) Elapsed() time.Duration {
@@ -41,7 +41,7 @@ func Start() func() {
 			millis := elapsed.Milliseconds()
 			var human string
 			if millis <= 2 {
-				human = fmt.Sprintf("%dns", elapsed.Microseconds())
+				human = fmt.Sprintf("%dus", elapsed.Microseconds())
 			} else {
 				human = fmt.Sprintf("%dms", millis)
 			}
