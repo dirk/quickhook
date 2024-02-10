@@ -4,6 +4,7 @@ COMMAND=$1
 shift
 if
     [ "$COMMAND" = "diff" ] ||
+    [ "$COMMAND" = "grep" ] ||
     [ "$COMMAND" = "ls-files" ] ||
     [ "$COMMAND" = "rev-list" ] ||
     [ "$COMMAND" = "rev-parse" ] ||
