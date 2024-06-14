@@ -13,7 +13,7 @@ if
 then
     # The Git executable below will be replaced at runtime when shimming.
     ACTUAL_GIT "$COMMAND" "$@"
-    exit 0
+    exit $?
 fi
 COMBINED=$(echo "$COMMAND  $*" | xargs)
 echo "git is not allowed in parallel hooks (git $COMBINED)"
