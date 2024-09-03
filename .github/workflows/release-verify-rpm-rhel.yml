@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     container: redhat/ubi8-minimal:latest
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: artifact
       - run: |
