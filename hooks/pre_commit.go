@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	lop "github.com/samber/lo/parallel"
@@ -17,6 +18,9 @@ import (
 
 //go:embed pre_commit_git_shim.sh
 var PRE_COMMIT_GIT_SHIM string
+
+//go:embed pre_commit_git_shim.cmd
+var PRE_COMMIT_GIT_SHIM_CMD string
 
 const PRE_COMMIT_HOOK = "pre-commit"
 const PRE_COMMIT_MUTATING_HOOK = "pre-commit-mutating"
@@ -119,6 +123,18 @@ func shimGit() (string, error) {
 	err = os.WriteFile(git, []byte(templated), 0755)
 	if err != nil {
 		return "", err
+	}
+	// On Windows, there are two ways hooks can be invoked: via native
+	// os/exec.Command or by calling "sh" interpreter. If the hook script
+	// invokes "git" on the first path, it will fail if we do not provide
+	// PATHEXT-compatible .cmd file.
+	if runtime.GOOS == "windows" {
+		gitCmd := filepath.Join(dir, "git.cmd")
+		templatedCmd := strings.Replace(PRE_COMMIT_GIT_SHIM_CMD, "ACTUAL_GIT", actualGit, 1)
+		err = os.WriteFile(gitCmd, []byte(templatedCmd), 0755)
+		if err != nil {
+			return "", err
+		}
 	}
 	return dir, nil
 }

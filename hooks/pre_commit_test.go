@@ -3,6 +3,7 @@ package hooks
 import (
 	"bytes"
 	"io"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -37,6 +38,9 @@ func TestFailingHookWithoutPty(t *testing.T) {
 }
 
 func TestFailingHookWithPty(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("PTY tests are not supported on Windows")
+	}
 	ptyTests := []struct {
 		name string
 		arg  []string

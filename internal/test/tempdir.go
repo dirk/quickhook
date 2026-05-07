@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -25,7 +26,11 @@ func NewTempDir(t *testing.T, depth int) TempDir {
 	for i := 0; i < depth; i++ {
 		elem = append(elem, "..")
 	}
-	elem = append(elem, "quickhook")
+	executable := "quickhook"
+	if runtime.GOOS == "windows" {
+		executable += ".exe"
+	}
+	elem = append(elem, executable)
 
 	return TempDir{
 		t:         t,

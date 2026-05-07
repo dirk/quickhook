@@ -146,7 +146,7 @@ func shimCommandForHook(quickhook, hook string) (string, error) {
 	case "pre-commit":
 		args = "pre-commit"
 	case "commit-msg":
-		args = "commit-msg $1"
+		args = "commit-msg \"$1\""
 	default:
 		return "", fmt.Errorf("invalid hook: %v", hook)
 	}

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/dirk/quickhook/tracing"
@@ -58,13 +59,21 @@ func (repo *Repo) FindHookExecutables(hook string) ([]string, error) {
 			continue
 		}
 		name := info.Name()
-		if (info.Mode() & 0111) != 0 {
-			hooks = append(hooks, path.Join(dir, name))
+		if isHookExecutable(info) {
+			hooks = append(hooks, filepath.Join(dir, name))
 		} else {
 			fmt.Fprintf(os.Stderr, "Warning: Non-executable file found in %v: %v\n", dir, name)
 		}
 	}
 	return hooks, nil
+}
+
+// Windows doesn't have executable file flags, so we have to allow all files.
+func isHookExecutable(info fs.FileInfo) bool {
+	if runtime.GOOS == "windows" {
+		return true
+	}
+	return (info.Mode() & 0111) != 0
 }
 
 // Runs a command with the repo root as the current working directory. Returns the command's

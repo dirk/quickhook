@@ -2,6 +2,7 @@
 
 # Executable itself when building locally.
 quickhook
+quickhook.exe
 
 # Code coverage artifacts.
 coverage
