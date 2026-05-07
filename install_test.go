@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -19,12 +19,12 @@ func TestInstallPreCommitYes(t *testing.T) {
 
 	output, err := tempDir.ExecQuickhook("install", "--yes")
 	assert.NoError(t, err)
-	shimPath := path.Join(".git", "hooks", "pre-commit")
+	shimPath := filepath.Join(".git", "hooks", "pre-commit")
 	assert.Equal(t,
 		fmt.Sprintf("Installed shim %v", shimPath),
 		strings.TrimSpace(output))
 	assert.FileExists(t,
-		path.Join(tempDir.Root, shimPath))
+		filepath.Join(tempDir.Root, shimPath))
 }
 
 func TestInstallPreCommitMutatingYes(t *testing.T) {
@@ -34,12 +34,12 @@ func TestInstallPreCommitMutatingYes(t *testing.T) {
 
 	output, err := tempDir.ExecQuickhook("install", "--yes")
 	assert.NoError(t, err)
-	shimPath := path.Join(".git", "hooks", "pre-commit")
+	shimPath := filepath.Join(".git", "hooks", "pre-commit")
 	assert.Equal(t,
 		fmt.Sprintf("Installed shim %v", shimPath),
 		strings.TrimSpace(output))
 	assert.FileExists(t,
-		path.Join(tempDir.Root, shimPath))
+		filepath.Join(tempDir.Root, shimPath))
 }
 
 func TestInstallNoQuickhookDirectory(t *testing.T) {

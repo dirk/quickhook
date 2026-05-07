@@ -2,7 +2,7 @@ package hooks
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,7 +18,7 @@ func initGitForCommitMsg(t *testing.T) test.TempDir {
 }
 
 func writeCommitEditMsg(t *testing.T, data string) string {
-	name := path.Join(t.TempDir(), "COMMIT_EDITMSG")
+	name := filepath.Join(t.TempDir(), "COMMIT_EDITMSG")
 	err := os.WriteFile(name, []byte(data), 0644)
 	require.NoError(t, err)
 	return name

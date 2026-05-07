@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"strings"
 
 	lop "github.com/samber/lo/parallel"
@@ -73,7 +73,7 @@ func (hook *PreCommit) Run(argsFiles []string) error {
 	// And the rest in parallel.
 	results := lop.Map(parallelExecutables, func(executable string, _ int) hookResult {
 		// Insert the git shim's directory into the PATH to prevent usage of git.
-		env := append(os.Environ(), fmt.Sprintf("PATH=%s:%s", dirForPath, os.Getenv("PATH")))
+		env := append(os.Environ(), fmt.Sprintf("PATH=%s%c%s", dirForPath, os.PathListSeparator, os.Getenv("PATH")))
 		return runExecutable(hook.Repo.Root, executable, env, stdin)
 	})
 	errored := false
@@ -115,7 +115,7 @@ func shimGit() (string, error) {
 		return "", err
 	}
 
-	git := path.Join(dir, "git")
+	git := filepath.Join(dir, "git")
 	err = os.WriteFile(git, []byte(templated), 0755)
 	if err != nil {
 		return "", err

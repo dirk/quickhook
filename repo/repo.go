@@ -5,7 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/dirk/quickhook/tracing"
@@ -32,10 +32,10 @@ func (repo *Repo) FindHookExecutables(hook string) ([]string, error) {
 	span := tracing.NewSpan("find " + hook)
 	defer span.End()
 
-	dir := path.Join(".quickhook", hook)
+	dir := filepath.Join(".quickhook", hook)
 	var infos []fs.FileInfo
 	{
-		f, err := os.Open(path.Join(repo.Root, dir))
+		f, err := os.Open(filepath.Join(repo.Root, dir))
 		if err != nil {
 			if os.IsNotExist(err) {
 				return []string{}, nil
@@ -89,7 +89,7 @@ func (repo *Repo) ExecCommandLines(name string, arg ...string) ([]string, error)
 }
 
 func (repo *Repo) isFile(name string) (bool, error) {
-	stat, err := os.Stat(path.Join(repo.Root, name))
+	stat, err := os.Stat(filepath.Join(repo.Root, name))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false, nil

@@ -6,7 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/samber/lo"
@@ -21,7 +21,7 @@ func install(repo *repo.Repo, quickhook string, prompt bool) error {
 	}
 
 	for _, hook := range hooks {
-		shimPath := path.Join(".git", "hooks", hook)
+		shimPath := filepath.Join(".git", "hooks", hook)
 		if prompt {
 			shouldInstall, err := promptForInstallShim(os.Stdin, repo, shimPath)
 			if err != nil {
@@ -43,7 +43,7 @@ func install(repo *repo.Repo, quickhook string, prompt bool) error {
 }
 
 func listHooks(repo *repo.Repo) ([]string, error) {
-	hooksPath := path.Join(repo.Root, ".quickhook")
+	hooksPath := filepath.Join(repo.Root, ".quickhook")
 
 	entries, err := ioutil.ReadDir(hooksPath)
 	if err != nil {
@@ -72,7 +72,7 @@ func listHooks(repo *repo.Repo) ([]string, error) {
 }
 
 func promptForInstallShim(stdin io.Reader, repo *repo.Repo, shimPath string) (bool, error) {
-	_, err := os.Stat(path.Join(repo.Root, shimPath))
+	_, err := os.Stat(filepath.Join(repo.Root, shimPath))
 	exists := true
 	if os.IsNotExist(err) {
 		exists = false
@@ -122,13 +122,14 @@ func installShim(repo *repo.Repo, shimPath, quickhook, hook string, prompt bool)
 		"", // So we get a trailing newline when we join
 	}
 
-	file, err := os.Create(shimPath)
+	fullShimPath := filepath.Join(repo.Root, shimPath)
+	file, err := os.Create(fullShimPath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	err = os.Chmod(shimPath, 0755)
+	err = os.Chmod(fullShimPath, 0755)
 	if err != nil {
 		return err
 	}

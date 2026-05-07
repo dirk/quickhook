@@ -3,7 +3,7 @@ package test
 import (
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -30,7 +30,7 @@ func NewTempDir(t *testing.T, depth int) TempDir {
 	return TempDir{
 		t:         t,
 		Root:      t.TempDir(),
-		Quickhook: path.Join(elem...),
+		Quickhook: filepath.Join(elem...),
 	}
 }
 
@@ -53,7 +53,7 @@ func (tempDir *TempDir) ExecQuickhook(arg ...string) (string, error) {
 }
 
 func (tempDir *TempDir) WriteFile(relativePath []string, data string) {
-	fullPath := path.Join(append([]string{tempDir.Root}, relativePath...)...)
+	fullPath := filepath.Join(append([]string{tempDir.Root}, relativePath...)...)
 	err := os.WriteFile(fullPath, []byte(data), 0755)
 	if err != nil {
 		tempDir.t.Fatal(err)
@@ -61,7 +61,7 @@ func (tempDir *TempDir) WriteFile(relativePath []string, data string) {
 }
 
 func (tempDir *TempDir) MkdirAll(relativePath ...string) {
-	fullPath := path.Join(append([]string{tempDir.Root}, relativePath...)...)
+	fullPath := filepath.Join(append([]string{tempDir.Root}, relativePath...)...)
 	err := os.MkdirAll(fullPath, 0755)
 	if err != nil {
 		tempDir.t.Fatal(err)

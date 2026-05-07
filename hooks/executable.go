@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/fatih/color"
@@ -14,8 +14,8 @@ import (
 )
 
 func runExecutable(root, executable string, env []string, stdin string, arg ...string) hookResult {
-	dir, command := path.Split(executable)
-	span := tracing.NewSpan(fmt.Sprintf("hook %s %s", path.Base(dir), command))
+	dir, command := filepath.Split(executable)
+	span := tracing.NewSpan(fmt.Sprintf("hook %s %s", filepath.Base(filepath.Clean(dir)), command))
 	defer span.End()
 	cmd := exec.Command(path.Join(root, executable), arg...)
 	cmd.Env = append(os.Environ(), env...)
@@ -39,12 +39,12 @@ type hookResult struct {
 }
 
 func (result *hookResult) printStdout() {
-	prefix := color.RedString("%s", path.Base(result.executable))
+	prefix := color.RedString("%s", filepath.Base(result.executable))
 	result.printLines(prefix, result.stdout)
 }
 
 func (result *hookResult) printStderr() {
-	prefix := color.YellowString("%s", path.Base(result.executable))
+	prefix := color.YellowString("%s", filepath.Base(result.executable))
 	result.printLines(prefix, result.stderr)
 }
 
