@@ -7,6 +7,22 @@ Quickhook is a Git hook runner designed for speed. It is opinionated where it ma
 
 ## Installation
 
+### `go get -tool`
+
+Go supports adding tool dependencies to `go.mod` file since version 1.24:
+
+```sh
+$ go get -tool github.com/dirk/quickhook
+$ go tool quickhook --version
+1.5.0
+```
+
+To uninstall:
+
+```sh
+go get -tool github.com/dirk/quickhook@none
+```
+
 ### `go install`
 
 If you have your $PATH set up for Go then it's as simple as:
@@ -65,6 +81,14 @@ Installed shim .git/hooks/commit-msg
 Create file .git/hooks/pre-commit? [yn] y
 Installed shim .git/hooks/pre-commit
 ```
+
+If you installed quickhook with `go get -tool`, use:
+
+```sh
+$ go tool quickhook install --bin="go tool quickhook"
+```
+
+Replace `quickhook` with `go tool quickhook` in examples below.
 
 Quickhook provides some options to run various hooks directly for development and testing. This way you don't have to follow the whole Git commit workflow just to exercise the new hook you're working on.
 
