@@ -7,6 +7,28 @@ Quickhook is a Git hook runner designed for speed. It is opinionated where it ma
 
 ## Installation
 
+### `go get -tool`
+
+For use in Go projects, Quickhook can be used as a tool dependency in `go.mod` since Go 1.24:
+
+```sh
+$ go get -tool github.com/dirk/quickhook@v1.6.2
+$ go tool quickhook --version
+v1.6.2
+```
+
+Then to install hooks:
+
+```sh
+$ go tool quickhook install --bin="go tool quickhook"
+```
+
+To uninstall:
+
+```sh
+$ go get github.com/dirk/quickhook@none
+```
+
 ### `go install`
 
 If you have your $PATH set up for Go then it's as simple as:
@@ -14,7 +36,7 @@ If you have your $PATH set up for Go then it's as simple as:
 ```sh
 $ go install github.com/dirk/quickhook
 $ quickhook --version
-1.5.0
+v1.6.2
 ```
 
 To uninstall use `clean -i`:
@@ -31,13 +53,13 @@ If you're on Mac there is a [Homebrew tap for Quickhook](https://github.com/dirk
 $ brew tap dirk/quickhook
 ==> Tapping dirk/quickhook
 ...
-Tapped 1 formula (14 files, 12.6KB).
+Tapped 1 formula (15 files, 15.6KB).
 
 $ brew install quickhook
-==> Fetching dirk/quickhook/quickhook
-==> Downloading https://github.com/dirk/quickhook/archive/v1.5.0.tar.gz
-...
-/opt/homebrew/Cellar/quickhook/1.5.0: 5 files, 3.1MB, built in 2 seconds
+==> Fetching downloads for: quickhook
+==> Installing quickhook from dirk/quickhook
+==> go build -ldflags=-s -w
+/opt/homebrew/Cellar/quickhook/1.6.2: 6 files, 3.8MB, built in 5 seconds
 ```
 
 ### Linux
