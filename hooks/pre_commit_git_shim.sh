@@ -3,6 +3,7 @@ set -e
 COMMAND=$1
 shift
 if
+    [ "$COMMAND" = "cat-file" ] ||
     [ "$COMMAND" = "diff" ] ||
     [ "$COMMAND" = "grep" ] ||
     [ "$COMMAND" = "ls-files" ] ||

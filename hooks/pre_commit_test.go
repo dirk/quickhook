@@ -133,6 +133,9 @@ func TestGitShimAllowsReadonlyAccess(t *testing.T) {
 	tempDir := initGitForPreCommit(t)
 	tempDir.MkdirAll(".quickhook", "pre-commit")
 	tempDir.WriteFile([]string{".quickhook", "pre-commit", "accesses-git"}, "#!/bin/sh \n git status")
+	tempDir.WriteFile(
+		[]string{".quickhook", "pre-commit", "reads-blobs"},
+		"#!/bin/sh \n echo :0:example.txt | git cat-file --batch")
 
 	output, err := tempDir.ExecQuickhook("hook", "pre-commit")
 	assert.Nil(t, err)
