@@ -67,9 +67,10 @@ $ brew install quickhook
 Tarballs for Linux and macOS, plus installable debs and RPMs for Linux, are available for the [latest release](https://github.com/dirk/quickhook/releases/latest). Assets are named `quickhook-<version>-<os>-<arch>` with `linux`/`darwin` and `amd64`/`arm64`. (Tarballs ship starting with the first release after v1.6.2; debs and RPMs are already available.)
 
 ```sh
-# Installing a tarball (the binary sits at the archive root)
-curl -LO https://github.com/dirk/quickhook/releases/download/v1.6.2/quickhook-1.6.2-darwin-arm64.tar.gz
-tar -xzf quickhook-1.6.2-darwin-arm64.tar.gz quickhook  # then move it onto your $PATH
+# Installing a tarball (the binary sits at the archive root);
+# substitute the latest release's version for <version>
+curl -LO https://github.com/dirk/quickhook/releases/download/v<version>/quickhook-<version>-darwin-arm64.tar.gz
+tar -xzf quickhook-<version>-darwin-arm64.tar.gz quickhook  # then move it onto your $PATH
 
 # Installing a .deb
 curl -LO https://github.com/dirk/quickhook/releases/download/v1.6.2/quickhook-1.6.2-linux-amd64.deb
