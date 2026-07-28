@@ -1,0 +1,19 @@
+README.md
+  s_7ac6692c142f59::t_d9afc2827b6108 67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "bd703ea0b0f1e31ec671d06cd3ec70815b777056",
+  "prompts": {},
+  "sessions": {
+    "s_7ac6692c142f59": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0a45c325-2a24-4067-91bf-fad8b3424e98",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Jeremy Daer <jeremydaer@gmail.com>"
+    }
+  }
+}
