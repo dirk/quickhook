@@ -1,0 +1,28 @@
+.github/workflows/release-verify-deb-ubuntu.yml
+  s_7ac6692c142f59::t_3092e8319cbd68 17-18
+.github/workflows/release-verify-rpm-rhel.yml
+  s_7ac6692c142f59::t_93183b024d2852 18-19
+.github/workflows/release-build.yml
+  s_7ac6692c142f59::t_f2114e3647f92e 57-62,64,68
+  s_7ac6692c142f59::t_d7d73d8bcb9503 16
+README.md
+  s_7ac6692c142f59::t_68fb751a823a34 65,67,70-73,75-76,79-86
+.github/workflows/release.yml
+  s_7ac6692c142f59::t_d3acaea191af76 23,30,35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "4ed54ca6c16d01b1e0caefb149bbdc412c6d063d",
+  "prompts": {},
+  "sessions": {
+    "s_7ac6692c142f59": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0a45c325-2a24-4067-91bf-fad8b3424e98",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Jeremy Daer <jeremydaer@gmail.com>"
+    }
+  }
+}
