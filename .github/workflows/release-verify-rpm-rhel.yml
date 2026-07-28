@@ -15,7 +15,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          pattern: release-linux-*
+          merge-multiple: true
       - run: |
           rpm --package quickhook-${{ inputs.version }}-linux-amd64.rpm --query --info
           rpm --package quickhook-${{ inputs.version }}-linux-amd64.rpm --query --list

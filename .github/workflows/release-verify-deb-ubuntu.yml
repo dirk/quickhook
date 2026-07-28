@@ -14,7 +14,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          pattern: release-linux-*
+          merge-multiple: true
       - run: |
           dpkg --info quickhook-${{ inputs.version }}-linux-amd64.deb
           dpkg --contents quickhook-${{ inputs.version }}-linux-amd64.deb

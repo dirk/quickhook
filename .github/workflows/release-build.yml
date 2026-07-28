@@ -13,17 +13,19 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [linux]
+        os: [linux, darwin]
         arch: [amd64, arm64]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v7
         with:
           go-version-file: 'go.mod'
-      - uses: ruby/setup-ruby@v1.146.0
+      - uses: ruby/setup-ruby@v1
+        if: ${{ matrix.os == 'linux' }}
         with:
           ruby-version: '3.1'
       - run: gem install fpm
+        if: ${{ matrix.os == 'linux' }}
       - name: Set version
         run: sed -i "s/VERSION = \"[^\"]*\"/VERSION = \"${{ inputs.version }}\"/" quickhook.go
       - name: Build
@@ -54,12 +56,15 @@ jobs:
             --version ${{ inputs.version }} \
             --architecture ${{ matrix.arch }} \
             --chdir build .
-      # - name: Copy binaries
-      #   if: ${{ matrix.os == 'darwin' }}
-      #   run: |
-      #     cp build/usr/bin/quickhook quickhook-${{ matrix.os }}-${{ matrix.arch }}
-      - uses: actions/upload-artifact@v3
+      # Binary at the archive root so tool managers (e.g. mise's github
+      # backend) find the executable without path overrides.
+      - name: Package tarballs
+        run: |
+          tar -czf quickhook-${{ inputs.version }}-${{ matrix.os }}-${{ matrix.arch }}.tar.gz -C build/usr/bin quickhook
+      - uses: actions/upload-artifact@v4
         with:
+          name: release-${{ matrix.os }}-${{ matrix.arch }}
           path: |
             *.deb
             *.rpm
+            *.tar.gz
