@@ -1,0 +1,19 @@
+.github/workflows/release-build.yml
+  s_7ac6692c142f59::t_957a3e267e27d9 20,23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "c83e20030f72874c63851f2a68ad767fc7c38446",
+  "prompts": {},
+  "sessions": {
+    "s_7ac6692c142f59": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0a45c325-2a24-4067-91bf-fad8b3424e98",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Jeremy Daer <jeremydaer@gmail.com>"
+    }
+  }
+}
