@@ -20,18 +20,41 @@ jobs:
       - id: version
         run: |
           echo "${{ inputs.version }}" | sed -E "s/^v?/version=/" >> $GITHUB_OUTPUT
-  build-linux:
+  build:
     uses: ./.github/workflows/release-build.yml
     needs: version
     with:
       version: ${{ needs.version.outputs.version }}
   verify-deb-ubuntu:
     uses: ./.github/workflows/release-verify-deb-ubuntu.yml
-    needs: [version, build-linux]
+    needs: [version, build]
     with:
       version: ${{ needs.version.outputs.version }}
   verify-rpm-rhel:
     uses: ./.github/workflows/release-verify-rpm-rhel.yml
-    needs: [version, build-linux]
+    needs: [version, build]
     with:
       version: ${{ needs.version.outputs.version }}
+  # Draft a release with all verified assets attached; publishing stays a
+  # human step. Skipped on non-main refs so test dispatches of this workflow
+  # only build and verify.
+  publish:
+    runs-on: ubuntu-latest
+    if: github.ref_name == github.event.repository.default_branch
+    needs: [version, verify-deb-ubuntu, verify-rpm-rhel]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+      - name: Draft release with assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ needs.version.outputs.version }}" \
+            --repo "${{ github.repository }}" \
+            --draft \
+            --generate-notes \
+            *.deb *.rpm *.tar.gz

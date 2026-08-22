@@ -62,18 +62,29 @@ $ brew install quickhook
 /opt/homebrew/Cellar/quickhook/1.6.2: 6 files, 3.8MB, built in 5 seconds
 ```
 
-### Linux
+### Binary downloads
 
-Installable debs and RPMs are available for the [latest release](https://github.com/dirk/quickhook/releases/latest).
+Tarballs for Linux and macOS, plus installable debs and RPMs for Linux, are available for the [latest release](https://github.com/dirk/quickhook/releases/latest). Assets are named `quickhook-<version>-<os>-<arch>` with `linux`/`darwin` and `amd64`/`arm64`. (Tarballs ship starting with the first release after v1.6.2; debs and RPMs are already available.)
 
 ```sh
+# Installing a tarball (the binary sits at the archive root);
+# substitute the latest release's version for <version>
+curl -LO https://github.com/dirk/quickhook/releases/download/v<version>/quickhook-<version>-darwin-arm64.tar.gz
+tar -xzf quickhook-<version>-darwin-arm64.tar.gz quickhook  # then move it onto your $PATH
+
 # Installing a .deb
-wget https://github.com/dirk/quickhook/releases/download/v1.5.0/quickhook-1.5.0-amd64.deb
-sudo apt install ./quickhook-1.5.0-amd64.deb
+curl -LO https://github.com/dirk/quickhook/releases/download/v1.6.2/quickhook-1.6.2-linux-amd64.deb
+sudo apt install ./quickhook-1.6.2-linux-amd64.deb
 
 # Installing a .rpm
-wget https://github.com/dirk/quickhook/releases/download/v1.5.0/quickhook-1.5.0-amd64.rpm
-sudo rpm --install quickhook-1.5.0-amd64.rpm
+curl -LO https://github.com/dirk/quickhook/releases/download/v1.6.2/quickhook-1.6.2-linux-amd64.rpm
+sudo rpm --install quickhook-1.6.2-linux-amd64.rpm
+```
+
+Or let [mise](https://mise.jdx.dev) fetch the right tarball for your platform:
+
+```sh
+$ mise use --global github:dirk/quickhook
 ```
 
 ## Usage
