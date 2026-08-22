@@ -12,9 +12,9 @@ Quickhook is a Git hook runner designed for speed. It is opinionated where it ma
 For use in Go projects, Quickhook can be used as a tool dependency in `go.mod` since Go 1.24:
 
 ```sh
-$ go get -tool github.com/dirk/quickhook@v1.6.2
+$ go get -tool github.com/dirk/quickhook@v1.6.3
 $ go tool quickhook --version
-v1.6.2
+v1.6.3
 ```
 
 Then to install hooks:
@@ -36,7 +36,7 @@ If you have your $PATH set up for Go then it's as simple as:
 ```sh
 $ go install github.com/dirk/quickhook
 $ quickhook --version
-v1.6.2
+v1.6.3
 ```
 
 To uninstall use `clean -i`:
@@ -64,7 +64,7 @@ $ brew install quickhook
 
 ### Binary downloads
 
-Tarballs for Linux and macOS, plus installable debs and RPMs for Linux, are available for the [latest release](https://github.com/dirk/quickhook/releases/latest). Assets are named `quickhook-<version>-<os>-<arch>` with `linux`/`darwin` and `amd64`/`arm64`. (Tarballs ship starting with the first release after v1.6.2; debs and RPMs are already available.)
+Tarballs for Linux and macOS, plus installable debs and RPMs for Linux, are available for the [latest release](https://github.com/dirk/quickhook/releases/latest). Assets are named `quickhook-<version>-<os>-<arch>` with `linux`/`darwin` and `amd64`/`arm64`. (Tarballs ship with v1.6.3 onwards; debs and RPMs are already available.)
 
 ```sh
 # Installing a tarball (the binary sits at the archive root);
@@ -73,12 +73,12 @@ curl -LO https://github.com/dirk/quickhook/releases/download/v<version>/quickhoo
 tar -xzf quickhook-<version>-darwin-arm64.tar.gz quickhook  # then move it onto your $PATH
 
 # Installing a .deb
-curl -LO https://github.com/dirk/quickhook/releases/download/v1.6.2/quickhook-1.6.2-linux-amd64.deb
-sudo apt install ./quickhook-1.6.2-linux-amd64.deb
+curl -LO https://github.com/dirk/quickhook/releases/download/v1.6.3/quickhook-1.6.3-linux-amd64.deb
+sudo apt install ./quickhook-1.6.3-linux-amd64.deb
 
 # Installing a .rpm
-curl -LO https://github.com/dirk/quickhook/releases/download/v1.6.2/quickhook-1.6.2-linux-amd64.rpm
-sudo rpm --install quickhook-1.6.2-linux-amd64.rpm
+curl -LO https://github.com/dirk/quickhook/releases/download/v1.6.3/quickhook-1.6.3-linux-amd64.rpm
+sudo rpm --install quickhook-1.6.3-linux-amd64.rpm
 ```
 
 Or let [mise](https://mise.jdx.dev) fetch the right tarball for your platform:
