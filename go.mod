@@ -1,6 +1,6 @@
 module github.com/dirk/quickhook
 
-go 1.21
+go 1.25.0
 
 require (
 	github.com/alecthomas/kong v0.9.0
@@ -8,6 +8,7 @@ require (
 	github.com/fatih/color v1.16.0
 	github.com/samber/lo v1.39.0
 	github.com/stretchr/testify v1.9.0
+	golang.org/x/sync v0.22.0
 )
 
 require (
