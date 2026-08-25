@@ -3,6 +3,8 @@ package hooks
 import (
 	"bytes"
 	"io"
+	"os"
+	"path"
 	"sort"
 	"strings"
 	"testing"
@@ -76,6 +78,26 @@ func TestFailingHookWithPty(t *testing.T) {
 			assert.Equal(t, tt.out, b.String())
 		})
 	}
+}
+
+func TestFailingHookCleansGitShim(t *testing.T) {
+	tempDir := initGitForPreCommit(t)
+	tempDir.MkdirAll(".quickhook", "pre-commit")
+	scratch := path.Join(tempDir.Root, "scratch")
+	tempDir.WriteFile(
+		[]string{".quickhook", "pre-commit", "fails"},
+		// Print the first entry in PATH to the scratch file.
+		"#!/bin/sh\nprintf '%s' \"${PATH%%:*}\" > scratch\nexit 1",
+	)
+
+	output, err := tempDir.ExecQuickhook("hook", "pre-commit")
+	assert.Error(t, err)
+	assert.Empty(t, output)
+
+	path, err := os.ReadFile(scratch)
+	require.NoError(t, err)
+	assert.Contains(t, string(path), "quickhook-git-")
+	assert.NoDirExists(t, string(path))
 }
 
 func TestPassesWithNoHooks(t *testing.T) {
