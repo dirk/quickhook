@@ -91,10 +91,11 @@ func main() {
 		hook := hooks.CommitMsg{
 			Repo: repo,
 		}
-		err = hook.Run(cli.Hook.CommitMsg.MessageFile)
+		code, err := hook.Run(cli.Hook.CommitMsg.MessageFile)
 		if err != nil {
 			panic(err)
 		}
+		os.Exit(code)
 
 	case "hook pre-commit":
 		repo, err := repo.NewRepo()
@@ -103,10 +104,11 @@ func main() {
 		}
 
 		hook := hooks.PreCommit{Repo: repo}
-		err = hook.Run(cli.Hook.PreCommit.Files)
+		code, err := hook.Run(cli.Hook.PreCommit.Files)
 		if err != nil {
 			panic(err)
 		}
+		os.Exit(code)
 
 	default:
 		panic(fmt.Sprintf("Unrecognized command: %v", parsed.Command()))
