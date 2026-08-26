@@ -1,7 +1,7 @@
 package repo
 
 import (
-	"github.com/samber/lo"
+	"slices"
 
 	"github.com/dirk/quickhook/tracing"
 )
@@ -13,8 +13,8 @@ func (repo *Repo) FilesToBeCommitted() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return lo.Filter(lines, func(line string, index int) bool {
+	return slices.DeleteFunc(lines, func(line string) bool {
 		isFile, _ := repo.isFile(line)
-		return isFile
-	}), err
+		return !isFile
+	}), nil
 }

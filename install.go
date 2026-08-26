@@ -7,9 +7,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"slices"
 	"strings"
-
-	"github.com/samber/lo"
 
 	"github.com/dirk/quickhook/repo"
 )
@@ -68,7 +67,8 @@ func listHooks(repo *repo.Repo) ([]string, error) {
 			hooks = append(hooks, name)
 		}
 	}
-	return lo.Uniq(hooks), nil
+	slices.Sort(hooks)
+	return slices.Compact(hooks), nil
 }
 
 func promptForInstallShim(stdin io.Reader, repo *repo.Repo, shimPath string) (bool, error) {
