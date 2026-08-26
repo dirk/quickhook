@@ -4,9 +4,17 @@ COMMAND=$1
 shift
 if
     [ "$COMMAND" = "cat-file" ] ||
+    [ "$COMMAND" = "check-attr" ] ||
+    [ "$COMMAND" = "check-ignore" ] ||
     [ "$COMMAND" = "diff" ] ||
+    [ "$COMMAND" = "diff-files" ] ||
+    [ "$COMMAND" = "diff-index" ] ||
+    [ "$COMMAND" = "diff-tree" ] ||
     [ "$COMMAND" = "grep" ] ||
+    [ "$COMMAND" = "log" ] ||
     [ "$COMMAND" = "ls-files" ] ||
+    [ "$COMMAND" = "ls-tree" ] ||
+    [ "$COMMAND" = "merge-base" ] ||
     [ "$COMMAND" = "rev-list" ] ||
     [ "$COMMAND" = "rev-parse" ] ||
     [ "$COMMAND" = "show" ] ||
